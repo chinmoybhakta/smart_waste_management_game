@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Trash to Taka — Smart Clean Bangladesh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08110e; --panel:#101b18; --panel2:#15231f; --line:#294039;
+  --text:#edf6ef; --muted:#9ab0a6; --green:#38d17b; --green2:#1ca760;
+  --gold:#ffd24a; --red:#ff5d4d; --blue:#63b7ff; --cyan:#5ee6dc; --purple:#bd91ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#050a08;color:var(--text);font-family:'Space Mono',monospace}
+body{background:radial-gradient(circle at 50% -20%,#15372c 0,#08110e 42%,#050806 100%);overflow-x:hidden}
+button,input{font:inherit}
+button{cursor:pointer}
+[hidden]{display:none!important}
+.pixel{font-family:'Press Start 2P',monospace}
+.screen{min-height:100vh;width:100%}
+
+/* landing */
+#landing{display:grid;place-items:center;padding:28px;position:relative;overflow:hidden}
+.hero{width:min(980px,100%);display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center;position:relative;z-index:2}
+.hero h1{font-size:clamp(32px,6vw,70px);line-height:1.18;margin:8px 0 14px;color:#f6fff7;text-shadow:5px 5px 0 #942f28}
+.eyebrow{color:var(--green);font-size:13px;letter-spacing:2px;text-transform:uppercase}
+.hero p{color:#c5d4cd;line-height:1.7}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.btn{border:2px solid var(--line);background:var(--panel2);color:var(--text);padding:12px 16px;border-radius:5px;font-weight:700;box-shadow:0 4px 0 #030605;transition:.08s transform,.15s filter,.15s border-color}
+.btn:hover{filter:brightness(1.15);border-color:#4d6d62}.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #030605}
+.btn.primary{background:var(--green);color:#07150d;border-color:#7ef0a6}.btn.warn{background:var(--gold);color:#1a1400}.btn.danger{background:var(--red);color:#220504}.btn.blue{background:var(--blue);color:#06121e}
+.hero-card{background:rgba(12,25,20,.88);border:2px solid var(--line);border-radius:8px;padding:18px;box-shadow:0 18px 45px rgba(0,0,0,.35)}
+.hero-map{height:420px;position:relative;overflow:hidden;background:#204d36;border:2px solid #3a5a4d;border-radius:6px;image-rendering:pixelated}
+.hero-road{position:absolute;left:-10%;right:-10%;top:52%;height:88px;background:#3a4044;transform:rotate(-4deg);border-block:8px solid #88918e}
+.hero-water{position:absolute;right:-12%;bottom:-10%;width:62%;height:42%;background:#173c3d;transform:rotate(-8deg);border:6px solid #234c3a}
+.hero-build{position:absolute;background:#b76a52;border:5px solid #743c2f;box-shadow:inset 0 0 0 6px #d28a70}
+.hero-build.b1{left:8%;top:12%;width:50%;height:130px}.hero-build.b2{right:9%;top:8%;width:24%;height:98px}
+.hero-tree{position:absolute;width:42px;height:42px;background:#2d883f;border:5px solid #1c5c2a;border-radius:50%;box-shadow:0 18px 0 -13px #71472b}
+.hero-tree.t1{left:11%;top:43%}.hero-tree.t2{left:29%;top:39%}.hero-tree.t3{right:18%;bottom:19%}
+.hero-bin{position:absolute;width:28px;height:36px;background:#20a965;border:4px solid #0b5d3a;border-radius:4px;right:34%;top:49%;box-shadow:0 -8px 0 -2px #8dd8a5}
+.hero-car{position:absolute;font-size:36px;left:10%;top:54%;animation:drive 8s linear infinite}.hero-car.c2{animation-delay:-4s;top:62%}
+@keyframes drive{from{transform:translateX(-160px)}to{transform:translateX(700px)}}
+
+/* game shell */
+#gameScreen{padding:10px;display:flex;justify-content:center;align-items:flex-start}
+.game-shell{width:min(1380px,100%);display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px}
+.topbar{grid-column:1/-1;background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:4px;z-index:15}
+.brand{display:flex;align-items:center;gap:12px}.brand strong{color:var(--gold);font-size:12px}.level-title{font-size:12px;color:#d7e6df}.top-actions{display:flex;gap:6px}
+.icon-btn{width:38px;height:34px;border:1px solid var(--line);border-radius:4px;background:#08110e;color:white}
+.viewport{background:#000;border:2px solid var(--line);border-radius:6px;overflow:hidden;position:relative;min-width:0}
+#gameCanvas{display:block;width:100%;height:auto;aspect-ratio:16/10;background:#111;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:manipulation;cursor:crosshair}
+.event-banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);min-width:300px;max-width:80%;padding:9px 12px;text-align:center;background:rgba(8,17,14,.93);border:2px solid var(--gold);border-radius:5px;color:var(--gold);font-size:12px;pointer-events:none;animation:pulse 1s steps(2) infinite}
+@keyframes pulse{50%{filter:brightness(1.25)}}
+.side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:12px}
+.card h3{font-size:11px;color:var(--gold);margin:0 0 10px;line-height:1.4}.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.stat{background:#0a1411;border:1px solid #243930;padding:8px;border-radius:4px}.stat span{display:block;color:var(--muted);font-size:10px}.stat b{display:block;margin-top:4px;font-size:13px}
+.bar{height:12px;background:#07100c;border:1px solid #28463a;border-radius:3px;overflow:hidden;margin-top:6px}.fill{height:100%;width:0;background:var(--green);transition:width .18s linear}.fill.pollution{background:linear-gradient(90deg,var(--green),var(--gold),var(--red))}
+.shareline{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--gold);margin:10px 0 6px}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.action-grid .btn{padding:10px 8px;font-size:10px}.action-grid .wide{grid-column:1/-1}
+.warehouse{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mat{border:1px solid #294039;background:#0a1411;border-radius:4px;padding:7px;font-size:10px}.mat b{font-size:12px}.paper{color:#eee}.plastic{color:#66c8ff}.organic{color:#e7c25b}.ewaste{color:#7ee7a0}
+.feed{height:138px;overflow:auto;font-size:10px;line-height:1.55;color:#c4d5cd;background:#08100d;border:1px solid #23372f;border-radius:4px;padding:8px}.feed div{border-bottom:1px dashed #1c2c26;padding:3px 0}.feed .good{color:#79e7a3}.feed .bad{color:#ff8a7d}.feed .info{color:#79c7ff}
+.level-strip{grid-column:1/-1;background:var(--panel);border:2px solid var(--line);border-radius:6px;padding:10px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.level-chip{font-size:9px;padding:9px 6px;border:1px solid #2f493f;background:#0b1512;color:#829a8f;border-radius:4px;text-align:center;cursor:default}.level-chip.current,.level-chip.done{cursor:pointer}.level-chip.current{border-color:var(--gold);color:var(--gold);background:#1b1b0b}.level-chip.done{border-color:var(--green);color:var(--green)}.level-chip.locked{opacity:.4}
+
+/* modals */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:grid;place-items:center;padding:16px;z-index:50}.modal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#111d19;border:2px solid #3b554b;border-radius:7px;padding:18px;box-shadow:0 20px 70px #000}.modal h2{font-family:'Press Start 2P';font-size:16px;line-height:1.6;color:var(--gold);margin:0 0 14px}.modal p,.modal li{font-size:12px;line-height:1.65;color:#c8d6d0}.offer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}.offer{background:#09120f;border:2px solid #284239;border-radius:5px;padding:10px}.offer.best{border-color:var(--green)}.offer h4{font-size:11px;color:var(--cyan);margin:0 0 8px}.offer .rate{font-size:16px;color:var(--gold);font-weight:700}.offer small{color:var(--muted)}
+.ledger-table{width:100%;border-collapse:collapse;font-size:10px}.ledger-table th,.ledger-table td{border:1px solid #2a4339;padding:6px;text-align:left}.ledger-table th{color:var(--gold);position:sticky;top:0;background:#111d19}
+
+@media(max-width:1000px){.game-shell{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr}.level-strip{grid-column:1}.topbar{grid-column:1}.hero{grid-template-columns:1fr}.hero-card{display:none}}
+@media(max-width:680px){#gameScreen{padding:5px}.topbar{position:static}.brand .level-title{display:none}.side{grid-template-columns:1fr}.statgrid{grid-template-columns:1fr 1fr}.level-strip{grid-template-columns:1fr;gap:3px}.level-chip{padding:6px}.offer-grid{grid-template-columns:1fr}.action-grid{grid-template-columns:1fr 1fr}.hero{display:block}.hero h1{font-size:34px}.modal{padding:14px}}
+</style>
+</head>
+<body>
+<section id="landing" class="screen">
+  <div class="hero">
+    <div>
+      <div class="eyebrow pixel">RETRO CLEANUP STRATEGY // BANGLADESH</div>
+      <h1 class="pixel">TRASH<br>TO TAKA</h1>
+      <p><b>Smart Clean Bangladesh</b> is a five-stage management strategy game. Build and upgrade automated smart bins, keep citizens motivated, negotiate recycling contracts, and push the Environmental Pollution Index to exactly <b>0%</b> before time expires.</p>
+      <div class="btnrow"><button id="startBtn" class="btn primary">Start Campaign</button><button id="howBtn" class="btn">How to Play</button><button id="resetSaveBtn" class="btn danger">Reset Save</button></div>
+      <p style="font-size:10px;color:#789088;margin-top:18px">HTML + CSS + Vanilla JavaScript · autosaves unlocked levels and sales ledger locally</p>
+    </div>
+    <div class="hero-card">
+      <div class="hero-map">
+        <div class="hero-road"></div><div class="hero-water"></div><div class="hero-build b1"></div><div class="hero-build b2"></div>
+        <div class="hero-tree t1"></div><div class="hero-tree t2"></div><div class="hero-tree t3"></div><div class="hero-bin"></div>
+        <div class="hero-car">🛺</div><div class="hero-car c2">🚚</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen" hidden>
+  <div class="game-shell">
+    <header class="topbar">
+      <div class="brand"><strong class="pixel">TRASH TO TAKA</strong><span class="level-title" id="topLevelTitle"></span></div>
+      <div class="top-actions"><button class="icon-btn" id="helpBtn">?</button><button class="icon-btn" id="muteBtn">🔊</button><button class="icon-btn" id="pauseBtn">⏸</button><button class="icon-btn" id="restartBtn">↻</button><button class="icon-btn" id="menuBtn">✕</button></div>
+    </header>
+
+    <main class="viewport">
+      <canvas id="gameCanvas" width="960" height="600"></canvas>
+      <div id="eventBanner" class="event-banner" hidden></div>
+    </main>
+
+    <aside class="side">
+      <section class="card">
+        <h3>COMMAND CENTER</h3>
+        <div class="statgrid">
+          <div class="stat"><span>FUNDS</span><b id="fundsStat">৳0</b></div>
+          <div class="stat"><span>TIME</span><b id="timeStat">00:00</b></div>
+          <div class="stat"><span>EPI</span><b id="epiStat">0%</b></div>
+          <div class="stat"><span>AVG MOOD</span><b id="moodStat">0%</b></div>
+        </div>
+        <div style="font-size:10px;margin-top:10px">Pollution index — target <b style="color:var(--green)">exactly 0%</b><div class="bar"><div id="epiFill" class="fill pollution"></div></div></div>
+      </section>
+
+      <section class="card">
+        <h3>PUBLIC REVENUE SHARE</h3>
+        <div class="shareline"><span>Corporate profit</span><b id="shareLabel" style="color:var(--gold)">50%</b><span>Public motivation</span></div>
+        <input id="shareSlider" type="range" min="10" max="90" step="5" value="50" />
+        <div style="font-size:10px;color:var(--muted)">Higher public share sharply improves citizen mood and clean disposal, but reduces the cash you keep from recycling sales.</div>
+      </section>
+
+      <section class="card">
+        <h3>OPERATIONS</h3>
+        <div class="action-grid">
+          <button class="btn primary" id="buyBinBtn">Build Bin</button>
+          <button class="btn blue" id="emptyBtn">Empty Bins</button>
+          <button class="btn warn" id="rewardBtn">Reward Drive</button>
+          <button class="btn" id="adBtn">Ad Campaign</button>
+          <button class="btn blue wide" id="salesBtn">B2B Recycling Market</button>
+          <button class="btn wide" id="ledgerBtn">Open Material Ledger</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>WAREHOUSE</h3>
+        <div class="warehouse">
+          <div class="mat paper">Paper / Glass<br><b id="wPaper">0.0 kg</b></div>
+          <div class="mat plastic">Plastic<br><b id="wPlastic">0.0 kg</b></div>
+          <div class="mat ewaste">E-Waste<br><b id="wEwaste">0.0 kg</b></div>
+          <div class="mat organic">Organic<br><b id="wOrganic">0.0 kg</b></div>
+        </div>
+      </section>
+
+      <section class="card"><h3>LIVE EVENT LOG</h3><div id="eventFeed" class="feed"></div></section>
+    </aside>
+
+    <nav id="levelStrip" class="level-strip"></nav>
+  </div>
+</section>
+
+<div id="howModal" class="overlay" hidden><div class="modal">
+  <h2>HOW TO PLAY</h2>
+  <ul>
+    <li>Clear all five Bangladesh stages in order: School/College, University, Garments & Office, Densely Populated, and Polluted Riverside Rural.</li>
+    <li>Each stage begins with open trash. Bring the Environmental Pollution Index to <b>exactly 0%</b> before the timer ends.</li>
+    <li>Build smart bins on highlighted sidewalk/placement zones. Click a placed bin to upgrade it up to Level 5 for larger capacity.</li>
+    <li>Public Revenue Share controls behavior. High public share raises mood and makes NPCs use bins. Low share increases frustration and littering.</li>
+    <li><b>Reward Drive</b> temporarily motivates citizens and activates volunteer litter pickup. <b>Ad Campaign</b> gives a smaller city-wide mood boost.</li>
+    <li><b>Empty Bins</b> transfers sorted material to the warehouse and writes an intake entry to the local ledger.</li>
+    <li>Use <b>B2B Recycling Market</b> to compare manufacturer offers. Plastic and E-Waste have high fair values, so reject exploitative low-ball bids.</li>
+    <li>Your net sale cash equals the negotiated gross amount minus the public revenue share. The public share improves civic trust.</li>
+  </ul>
+  <button class="btn primary" data-close="howModal">Got it</button>
+</div></div>
+
+<div id="upgradeModal" class="overlay" hidden><div class="modal" style="max-width:520px">
+  <h2>SMART BIN UPGRADE</h2><div id="upgradeInfo"></div><div class="btnrow"><button id="upgradeConfirmBtn" class="btn primary">Upgrade</button><button class="btn" data-close="upgradeModal">Close</button></div>
+</div></div>
+
+<div id="salesModal" class="overlay" hidden><div class="modal">
+  <h2>B2B RECYCLING MARKET</h2>
+  <div id="salesIntro" style="font-size:11px;color:#b8cbc2"></div>
+  <div class="btnrow" id="materialButtons"></div>
+  <div id="offerGrid" class="offer-grid"></div>
+  <div class="btnrow"><button id="refreshOffersBtn" class="btn">Reject & Refresh Offers</button><button class="btn" data-close="salesModal">Close Market</button></div>
+</div></div>
+
+<div id="ledgerModal" class="overlay" hidden><div class="modal" style="max-width:900px">
+  <h2>MATERIAL LEDGER</h2><p>Intake and sale records are stored in your browser with <code>localStorage</code>, providing a lightweight backend-style ledger while keeping the requested HTML/CSS/vanilla JavaScript stack.</p>
+  <div style="overflow:auto;max-height:55vh"><table class="ledger-table"><thead><tr><th>Time</th><th>Level</th><th>Type</th><th>Material</th><th>kg</th><th>Gross</th><th>Public</th><th>Net</th><th>Company</th></tr></thead><tbody id="ledgerBody"></tbody></table></div>
+  <div class="btnrow"><button id="clearLedgerBtn" class="btn danger">Clear Ledger</button><button class="btn" data-close="ledgerModal">Close</button></div>
+</div></div>
+
+<div id="endModal" class="overlay" hidden><div class="modal" style="max-width:560px;text-align:center"><h2 id="endTitle"></h2><div id="endText"></div><div class="btnrow" style="justify-content:center"><button id="nextBtn" class="btn primary">Next Level</button><button id="retryBtn" class="btn warn">Retry</button><button id="endMenuBtn" class="btn">Main Menu</button></div></div></div>
+
+<script>
+(() => {
+'use strict';
+
+const W=960,H=600, TILE=32;
+const MAT=['Paper','Plastic','E-Waste','Organic'];
+const BASE_RATE={Paper:18,Plastic:44,'E-Waste':92,Organic:13};
+const BIN_CAP=[0,90,180,320,520,820];
+const UPGRADE_COST=[0,2200,3400,5200,7600,0];
+const SAVE_KEY='trashToTakaCampaignV2';
+const LEDGER_KEY='trashToTakaLedgerV2';
+
+const LEVELS=[
+ {id:1,name:'School / College Area',short:'School',time:240,money:6500,binLimit:3,initialLitter:24,spawn:0.045,pollutionScale:1.0,theme:'school',npc:['Student','Guardian','Vendor'],vehicles:['rickshaw','cng','bike'],desc:'A busy Dhaka school corridor with playground, tea stalls and mixed student traffic.'},
+ {id:2,name:'University Area',short:'University',time:260,money:7800,binLimit:4,initialLitter:31,spawn:0.055,pollutionScale:1.08,theme:'university',npc:['Student','Student','Teacher','Vendor'],vehicles:['bus','rickshaw','bike','cng'],desc:'Large campus avenues, halls, food carts and heavy paper/plastic consumption.'},
+ {id:3,name:'Garments & Office Area',short:'Garments',time:275,money:9200,binLimit:4,initialLitter:38,spawn:0.062,pollutionScale:1.15,theme:'garments',npc:['Worker','Officer','Vendor','Worker'],vehicles:['truck','van','bus','cng'],desc:'Factory gates, office blocks, delivery trucks and valuable commercial recyclables.'},
+ {id:4,name:'Densely Populated Area',short:'Dense City',time:300,money:10500,binLimit:5,initialLitter:48,spawn:0.074,pollutionScale:1.23,theme:'dense',npc:['Resident','Vendor','Student','Worker','Resident'],vehicles:['rickshaw','cng','van','bike'],desc:'Narrow lanes, bazaar crowds, apartment blocks and constant organic waste pressure.'},
+ {id:5,name:'Extremely Polluted Riverside Rural Area',short:'Riverside',time:330,money:12500,binLimit:6,initialLitter:64,spawn:0.078,pollutionScale:1.34,theme:'river',npc:['Villager','Farmer','Vendor','Child','Worker'],vehicles:['rickshaw','van','boat'],desc:'A severely polluted riverside settlement with market waste, boats and fragile waterways.'}
+];
+
+const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rand=(a,b)=>a+Math.random()*(b-a); const randi=(a,b)=>Math.floor(rand(a,b+1));
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const money=n=>'৳'+Math.round(n).toLocaleString('en-US');
+// Stable pseudo-random for scenery: same inputs always produce the same output,
+// so decorative details (flowers, ripples, potholes) stop flickering between frames.
+const hash2=(a,b)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n)};
+
+class Sound {
+ constructor(){this.ctx=null;this.muted=false}
+ ensure(){if(!this.ctx){const A=window.AudioContext||window.webkitAudioContext;if(A)this.ctx=new A()}if(this.ctx?.state==='suspended')this.ctx.resume()}
+ tone(f,d=.08,type='square',vol=.035){if(this.muted||!this.ctx)return;const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(vol,this.ctx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,this.ctx.currentTime+d);o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(this.ctx.currentTime+d)}
+ click(){this.tone(650,.045)} good(){this.tone(800,.07);setTimeout(()=>this.tone(1100,.08),70)} bad(){this.tone(180,.12,'sawtooth')} drop(){this.tone(130,.055,'sine')} coin(){this.tone(960,.06);setTimeout(()=>this.tone(1300,.07),55)}
+}
+const sound=new Sound();
+
+class SmartBin{
+ constructor(x,y,starting=false){this.x=x;this.y=y;this.level=1;this.starting=starting;this.stock={Paper:0,Plastic:0,'E-Waste':0,Organic:0};this.disabled=0}
+ get capacity(){return BIN_CAP[this.level]}
+ get total(){return MAT.reduce((s,m)=>s+this.stock[m],0)}
+ get full(){return this.total>=this.capacity-0.01}
+ add(type,kg){const room=this.capacity-this.total,put=Math.max(0,Math.min(room,kg));this.stock[type]+=put;return put}
+ draw(ctx){
+   const x=this.x,y=this.y;ctx.save();ctx.imageSmoothingEnabled=false;
+   ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,y+21,16,4,0,0,Math.PI*2);ctx.fill();
+   if(this.disabled>0)ctx.globalAlpha=.45;
+   const c=['','#2eb66e','#35c67d','#2cb9a8','#d1b744','#7b9cff'][this.level];
+   ctx.fillStyle='#0b3020';ctx.fillRect(x-12,y-14,24,30);ctx.fillStyle=c;ctx.fillRect(x-10,y-12,20,27);ctx.fillStyle='#b9d5c5';ctx.fillRect(x-12,y-16,24,5);
+   if(this.level>=2){ctx.fillStyle='#263f4e';ctx.fillRect(x-8,y-22,16,6)} if(this.level>=3){ctx.fillStyle='#70d6ff';ctx.fillRect(x-5,y-20,10,3)} if(this.level>=4){ctx.fillStyle='#ffd24a';ctx.fillRect(x+8,y-8,4,10)} if(this.level>=5){ctx.fillStyle='#b693ff';ctx.fillRect(x-3,y-27,6,6)}
+   ctx.fillStyle='#07100c';ctx.fillRect(x-14,y+19,28,5);ctx.fillStyle=this.full?'#ff5d4d':'#38d17b';ctx.fillRect(x-14,y+19,28*clamp(this.total/this.capacity,0,1),5);
+   ctx.strokeStyle='#d7eee2';ctx.strokeRect(x-14.5,y+18.5,29,6);ctx.fillStyle='#fff';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText('L'+this.level,x,y+37);ctx.restore();
+ }
+}
+
+class Vehicle{
+ constructor(type,lane,dir=1){this.type=type;this.lane=lane;this.dir=dir;this.x=dir>0?-80:W+80;this.speed={rickshaw:1.25,cng:1.7,bike:2.2,bus:1.05,truck:.9,van:1.35,boat:.7}[type]||1.3;this.delay=randi(0,140)}
+ update(mult=1){if(this.delay>0){this.delay--;return}this.x+=this.speed*this.dir*mult;if(this.dir>0&&this.x>W+100||this.dir<0&&this.x<-100){this.x=this.dir>0?-100:W+100;this.delay=randi(30,180)}}
+ draw(ctx){
+  if(this.delay>0)return;
+  const x=this.x,y=this.lane;
+  ctx.save();ctx.translate(x,y);if(this.dir<0){ctx.scale(-1,1)}
+
+  // ground shadow (helps everything read as sitting on the road)
+  ctx.fillStyle='rgba(0,0,0,.28)';
+  ctx.beginPath();ctx.ellipse(0,12,this.type==='bus'?26:this.type==='truck'?24:this.type==='boat'?26:16,4,0,0,Math.PI*2);ctx.fill();
+
+  const body={rickshaw:'#d94848',cng:'#23894b',bike:'#4ca0ff',bus:'#e2b23e',truck:'#8c9aa2',van:'#d7d7d7',boat:'#a76b42'}[this.type];
+  ctx.fillStyle=body;
+
+  if(this.type==='bike'){
+    ctx.strokeStyle='#222';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-9,4);ctx.lineTo(0,-6);ctx.lineTo(9,4);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-9,4);ctx.lineTo(9,4);ctx.stroke();
+    ctx.beginPath();ctx.arc(-9,5,4,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(9,5,4,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle=body;ctx.fillRect(-3,-9,6,4);
+    ctx.fillStyle='#3b271d';ctx.beginPath();ctx.arc(0,-11,3,0,Math.PI*2);ctx.fill();
+  } else if(this.type==='rickshaw'){
+    ctx.fillStyle='#8c1f1f';ctx.beginPath();ctx.arc(-1,-13,13,Math.PI,0);ctx.fill(); // hood canopy
+    ctx.fillStyle=body;ctx.fillRect(-15,-10,24,17);
+    ctx.fillStyle='#ffd24a';ctx.fillRect(-12,-8,16,8);
+    ctx.fillStyle='#3b271d';ctx.beginPath();ctx.arc(-4,-9,3,0,Math.PI*2);ctx.fill(); // driver head
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(-9,9,5,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(11,9,5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#666';
+    ctx.beginPath();ctx.arc(-9,9,2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(11,9,2,0,Math.PI*2);ctx.fill();
+  } else if(this.type==='boat'){
+    ctx.beginPath();ctx.moveTo(-24,5);ctx.lineTo(24,5);ctx.lineTo(15,14);ctx.lineTo(-16,14);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.15)';ctx.fillRect(-24,5,48,3);
+    ctx.fillStyle='#e6d1a2';ctx.fillRect(-5,-6,12,11);
+    ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(-30,9);ctx.lineTo(-22,6);ctx.moveTo(28,9);ctx.lineTo(20,6);ctx.stroke();
+  } else {
+    const ww=this.type==='bus'?46:this.type==='truck'?44:34,hh=this.type==='bus'?22:18;
+    if(this.type==='truck'){
+      ctx.fillStyle='#5f6a70';ctx.fillRect(-ww/2,-hh/2,14,hh);
+      ctx.fillStyle='#bfe0ea';ctx.fillRect(-ww/2+3,-hh/2+4,8,6);
+      ctx.fillStyle=body;ctx.fillRect(-ww/2+14,-hh/2+2,ww-14,hh-2);
+      ctx.strokeStyle='rgba(0,0,0,.2)';ctx.strokeRect(-ww/2+14,-hh/2+2,ww-14,hh-2);
+    } else {
+      ctx.fillRect(-ww/2,-hh/2,ww,hh);
+      ctx.fillStyle='#9ed7e8';
+      const winCount=this.type==='bus'?4:1;
+      for(let i=0;i<winCount;i++) ctx.fillRect(-ww/2+5+i*9,-hh/2+4,7,7);
+    }
+    ctx.fillStyle='#ffe9a8';ctx.fillRect(ww/2-4,-2,4,4);
+    ctx.fillStyle='#111';
+    ctx.beginPath();ctx.arc(-ww/2+9,hh/2-1,6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ww/2-10,hh/2-1,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#555';
+    ctx.beginPath();ctx.arc(-ww/2+9,hh/2-1,2.4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(ww/2-10,hh/2-1,2.4,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+ }
+}
+
+class Citizen{
+ constructor(level){this.level=level;this.archetype=level.cfg.npc[randi(0,level.cfg.npc.length-1)];const p=level.spawnPoint();this.x=p.x;this.y=p.y;this.entry=p;this.speed=rand(.55,1.15);this.hasWaste=Math.random()<.74;this.type=level.pickWaste();this.littered=false;this.target=null;this.exitAfter=false;this.age=0;this.pickup=null;this.baseMood=rand(25,62);this.variant=randi(0,5)}
+ get mood(){return clamp(this.baseMood + (game.publicShare-50)*1.12 + game.civicTrust*.18 + (game.rewardTime>0?38:0)+(game.adTime>0?19:0)+(game.event?.mood||0) - game.epi*.3,0,100)}
+ chooseBin(){const valid=this.level.bins.filter(b=>!b.full&&b.disabled<=0);if(!valid.length)return null;return valid.sort((a,b)=>Math.hypot(this.x-a.x,this.y-a.y)-Math.hypot(this.x-b.x,this.y-b.y))[0]}
+ update(){this.age++;const mood=this.mood;
+   if(!this.hasWaste && !this.pickup && game.rewardTime>0 && this.level.litter.length){let l=this.level.nearestLitter(this.x,this.y);if(l){this.moveTo(l.x,l.y);if(Math.hypot(this.x-l.x,this.y-l.y)<8){this.pickup=l.type;this.level.removeLitter(l);feed('Volunteer picked up '+l.type,'good')}}return}
+   if(this.pickup){const b=this.chooseBin();if(b){this.moveTo(b.x,b.y);if(Math.hypot(this.x-b.x,this.y-b.y)<10){b.add(this.pickup,4);this.pickup=null;sound.click()}}else this.walkThrough();return}
+   if(this.hasWaste){if(mood>=62){const b=this.chooseBin();if(b){this.moveTo(b.x,b.y);if(Math.hypot(this.x-b.x,this.y-b.y)<10){b.add(this.type,4);this.hasWaste=false;this.exitAfter=true;sound.click();return}}else this.tryLitter();}else this.tryLitter();}
+   else this.walkThrough();
+ }
+ tryLitter(){this.walkThrough();const chance=.007 + Math.max(0,60-this.mood)*.00045 + Math.max(0,40-game.publicShare)*.00035;if(!this.littered && Math.random()<chance){this.level.addLitter(this.x,this.y,this.type,5);this.hasWaste=false;this.littered=true;sound.drop();feed(this.archetype+' littered '+this.type,'bad')}}
+ walkThrough(){this.y+=this.speed*(this.entry.side==='top'?1:-1);this.x+=Math.sin((this.age+this.variant*11)/24)*.25}
+ moveTo(x,y){const dx=x-this.x,dy=y-this.y,d=Math.hypot(dx,dy)||1;this.x+=dx/d*this.speed*1.45;this.y+=dy/d*this.speed*1.45}
+ draw(ctx){const x=Math.round(this.x),y=Math.round(this.y),m=this.mood;const shirt=['#5f8eff','#ef775f','#f2c84b','#60c990','#b88bf0','#e0e0e0'][this.variant];ctx.save();ctx.fillStyle='rgba(0,0,0,.22)';ctx.beginPath();ctx.ellipse(x,y+10,5,2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3b271d';ctx.fillRect(x-4,y-13,8,5);ctx.fillStyle=['#d7a173','#b97856','#e2b58a'][this.variant%3];ctx.fillRect(x-3,y-11,6,6);ctx.fillStyle=shirt;ctx.fillRect(x-5,y-5,10,9);ctx.fillStyle='#1d2c37';ctx.fillRect(x-4,y+4,3,6);ctx.fillRect(x+1,y+4,3,6);ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(this.pickup?'🧹':this.hasWaste?(m>=62?'🙂':'😠'):'·',x,y-18);ctx.restore()}
+}
+
+class LevelWorld{
+ constructor(cfg){this.cfg=cfg;this.bins=[];this.litter=[];this.npcs=[];this.vehicles=[];this.decor=[];this.placement=[];this.roadY=340;this.spawnClock=0;this.buildMap();this.seedLitter();this.bins.push(new SmartBin(this.placement[0].x,this.placement[0].y,true));}
+ buildMap(){
+   const t=this.cfg.theme;this.placement=[];
+   if(t==='school'){this.roadY=355;this.placement=[{x:350,y:330},{x:555,y:330},{x:760,y:330},{x:200,y:330}];}
+   if(t==='university'){this.roadY=360;this.placement=[{x:275,y:332},{x:450,y:332},{x:640,y:332},{x:805,y:332},{x:170,y:500}];}
+   if(t==='garments'){this.roadY=345;this.placement=[{x:260,y:315},{x:440,y:315},{x:620,y:315},{x:810,y:315},{x:150,y:500}];}
+   if(t==='dense'){this.roadY=365;this.placement=[{x:170,y:337},{x:330,y:337},{x:500,y:337},{x:680,y:337},{x:840,y:337},{x:540,y:515}];}
+   if(t==='river'){this.roadY=330;this.placement=[{x:180,y:303},{x:330,y:303},{x:505,y:303},{x:680,y:303},{x:810,y:303},{x:570,y:495},{x:750,y:485}];}
+   const vt=this.cfg.vehicles;for(let i=0;i<Math.min(5,vt.length+1);i++){const type=vt[i%vt.length];const lane=type==='boat'?520:this.roadY+(i%2?18:-14);this.vehicles.push(new Vehicle(type,lane,i%2?1:-1));}
+ }
+ seedLitter(){for(let i=0;i<this.cfg.initialLitter;i++){const x=rand(70,890),y=rand(250,530);this.addLitter(x,y,this.pickWaste(),5,false)}}
+ pickWaste(){const r=Math.random(),t=this.cfg.theme;if(t==='university'&&r>.82)return 'E-Waste';if(t==='garments'&&r>.76)return 'Plastic';if(t==='river'&&r>.68)return 'Organic';if(r<.30)return 'Paper';if(r<.62)return 'Plastic';if(r<.77)return 'E-Waste';return 'Organic'}
+ addLitter(x,y,type,kg=5,log=true){this.litter.push({x:clamp(x,40,920),y:clamp(y,210,555),type,kg,rot:rand(0,Math.PI)});if(log)game.recomputeEpi()}
+ removeLitter(obj){const i=this.litter.indexOf(obj);if(i>=0)this.litter.splice(i,1);game.recomputeEpi()}
+ nearestLitter(x,y){let best=null,bd=1e9;for(const l of this.litter){const d=Math.hypot(x-l.x,y-l.y);if(d<bd){bd=d;best=l}}return best}
+ spawnPoint(){const top=Math.random()<.72;return{x:rand(80,890),y:top?205:560,side:top?'top':'bottom'}}
+ update(){
+   this.spawnClock++;const spawnChance=this.cfg.spawn*(game.event?.spawn||1);if(Math.random()<spawnChance&&this.npcs.length<22)this.npcs.push(new Citizen(this));
+   for(const v of this.vehicles)v.update(game.event?.traffic||1);
+   for(const b of this.bins)if(b.disabled>0)b.disabled--;
+   for(let i=this.npcs.length-1;i>=0;i--){const n=this.npcs[i];n.update();if(n.y>590||n.y<195||n.age>2200)this.npcs.splice(i,1)}
+ }
+ draw(ctx){this.drawGround(ctx);for(const l of this.litter)this.drawLitter(ctx,l);for(const v of this.vehicles)v.draw(ctx);for(const b of this.bins)b.draw(ctx);for(const n of this.npcs)n.draw(ctx)}
+ drawGround(ctx){const t=this.cfg.theme;ctx.clearRect(0,0,W,H);ctx.fillStyle='#4f8d49';ctx.fillRect(0,0,W,H);
+   // subtle pixel grid
+   ctx.fillStyle='rgba(0,0,0,.06)';for(let x=0;x<W;x+=16)for(let y=0;y<H;y+=16)if((x+y)%32===0)ctx.fillRect(x,y,1,1);
+   if(t==='school')this.drawSchool(ctx); if(t==='university')this.drawUniversity(ctx); if(t==='garments')this.drawGarments(ctx); if(t==='dense')this.drawDense(ctx); if(t==='river')this.drawRiver(ctx);
+   for(const p of this.placement){ctx.strokeStyle='rgba(255,210,74,.30)';ctx.setLineDash([4,4]);ctx.strokeRect(p.x-18,p.y-22,36,42);ctx.setLineDash([])}
+ }
+ road(ctx,y=this.roadY,h=76){
+   ctx.save();
+   ctx.fillStyle='#8b928e';ctx.fillRect(0,y-h/2-8,W,h+16);
+   ctx.fillStyle='#3b4144';ctx.fillRect(0,y-h/2,W,h);
+   // worn patches (stable positions so the road stops shimmering every frame)
+   ctx.fillStyle='rgba(0,0,0,.14)';
+   for(let i=0;i<14;i++){
+     const px=hash2(i,y)*W, py=y-h/2+8+hash2(y,i)*(h-16), pr=hash2(px,py)*8+5;
+     ctx.beginPath();ctx.ellipse(px,py,pr,pr*.45,0,0,Math.PI*2);ctx.fill();
+   }
+   ctx.strokeStyle='#e7d783';ctx.lineWidth=3;ctx.setLineDash([25,18]);
+   ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();ctx.setLineDash([]);
+   ctx.fillStyle='#a8aaa3';ctx.fillRect(0,y-h/2-14,W,12);ctx.fillRect(0,y+h/2+2,W,12);
+   // curb ticks
+   ctx.fillStyle='rgba(0,0,0,.16)';
+   for(let cx=10;cx<W;cx+=40){ctx.fillRect(cx,y-h/2-14,3,12);ctx.fillRect(cx,y+h/2+2,3,12)}
+   ctx.restore();
+ }
+ building(ctx,x,y,w,h,body='#b8755f',roof='#6f3b31',label='',kind='generic'){
+   ctx.save();
+   // shadow
+   ctx.fillStyle='rgba(6,12,10,.22)';ctx.fillRect(x-2,y+h,w+16,7);
+   // roof
+   ctx.fillStyle=roof;ctx.fillRect(x-6,y-10,w+12,14);
+   ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(x-6,y-10,w+12,4);
+   // body with simple side shading for a bit of depth
+   ctx.fillStyle=body;ctx.fillRect(x,y,w,h);
+   ctx.fillStyle='rgba(0,0,0,.10)';ctx.fillRect(x,y,6,h);
+   ctx.fillStyle='rgba(255,255,255,.10)';ctx.fillRect(x+w-6,y,6,h);
+   // windows — deterministically "lit" so the pattern is stable across frames
+   const cols=Math.max(2,Math.floor((w-20)/30)), rows=Math.max(1,Math.floor((h-30)/27));
+   for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+     const wx=x+14+c*30, wy=y+20+r*27;
+     const lit=hash2(wx,wy+kind.length)>0.55;
+     ctx.fillStyle='#3c2a24';ctx.fillRect(wx,wy,16,11);
+     ctx.fillStyle=lit?'#ffe6a0':'#a7cde0';ctx.fillRect(wx+2,wy+2,12,7);
+     if(kind==='office')ctx.fillStyle='rgba(255,255,255,.3)',ctx.fillRect(wx+2,wy+2,4,7);
+     if(hash2(wx,wy)>.86){ctx.fillStyle='#57646b';ctx.fillRect(wx+3,wy+11,10,4)} // stray AC box
+   }
+   // ground-floor door
+   ctx.fillStyle='#4a3126';ctx.fillRect(x+w/2-9,y+h-24,18,24);
+   ctx.fillStyle='#7c5a3f';ctx.fillRect(x+w/2-9,y+h-24,18,3);
+   // rooftop extras by building type
+   if(kind==='residential'||kind==='dense'){
+     ctx.fillStyle='#7c8a8f';ctx.beginPath();ctx.ellipse(x+w-20,y-16,9,7,0,0,Math.PI*2);ctx.fill();
+     ctx.strokeStyle='#54636a';ctx.beginPath();ctx.moveTo(x+w-20,y-23);ctx.lineTo(x+w-20,y-31);ctx.stroke();
+   }
+   if(kind==='school'||kind==='institutional'){
+     ctx.strokeStyle='#dcdcdc';ctx.lineWidth=2;
+     ctx.beginPath();ctx.moveTo(x+14,y-10);ctx.lineTo(x+14,y-32);ctx.stroke();
+     ctx.fillStyle='#2f8a44';ctx.fillRect(x+14,y-32,14,9);
+   }
+   // sign
+   if(label){
+     ctx.fillStyle='#f5ead5';ctx.fillRect(x+w*.2,y-18,w*.6,18);
+     ctx.strokeStyle='rgba(0,0,0,.25)';ctx.strokeRect(x+w*.2,y-18,w*.6,18);
+     ctx.fillStyle='#15211d';ctx.font='bold 11px monospace';ctx.textAlign='center';
+     ctx.fillText(label,x+w/2,y-5);
+   }
+   ctx.restore();
+ }
+ tree(ctx,x,y,flower=false){
+   ctx.save();
+   const hue=hash2(x,y);
+   const canopyA=flower?'#1f7135':`hsl(${104+hue*14},38%,${30+hue*6}%)`;
+   const canopyB=flower?'#2e9447':`hsl(${108+hue*14},44%,${38+hue*6}%)`;
+   ctx.fillStyle='rgba(8,16,12,.28)';ctx.beginPath();ctx.ellipse(x,y+33,20,6,0,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#6c4326';ctx.fillRect(x-4,y+10,8,24);
+   ctx.fillStyle='#4d2f19';ctx.fillRect(x-4,y+10,2,24);ctx.fillRect(x+2,y+16,2,10);
+   ctx.fillStyle=canopyA;ctx.beginPath();ctx.arc(x,y+4,19,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle=canopyB;ctx.beginPath();ctx.arc(x-6,y-6,14,0,Math.PI*2);ctx.fill();
+   ctx.beginPath();ctx.arc(x+8,y-2,12,0,Math.PI*2);ctx.fill();
+   if(flower){
+     ctx.fillStyle='#e84e3a';
+     for(let i=0;i<9;i++){
+       const dx=(hash2(x+i*13.1,y)-.5)*30, dy=(hash2(x,y+i*7.3)-.5)*24-6;
+       ctx.fillRect(x+dx,y+dy,4,4);
+     }
+   }
+   ctx.restore();
+ }
+ treePalm(ctx,x,y){
+   ctx.save();
+   ctx.fillStyle='rgba(8,16,12,.24)';ctx.beginPath();ctx.ellipse(x,y+40,16,5,0,0,Math.PI*2);ctx.fill();
+   ctx.strokeStyle='#7a5a34';ctx.lineWidth=6;
+   ctx.beginPath();ctx.moveTo(x,y+40);ctx.quadraticCurveTo(x+6,y+10,x-2,y-14);ctx.stroke();
+   ctx.fillStyle='#2f8a44';
+   for(let i=0;i<6;i++){
+     const ang=(i/6)*Math.PI*2+hash2(x,i)*0.4;
+     ctx.save();ctx.translate(x-2,y-14);ctx.rotate(ang);
+     ctx.beginPath();ctx.ellipse(14,0,16,5,0,0,Math.PI*2);ctx.fill();
+     ctx.restore();
+   }
+   ctx.restore();
+ }
+ streetlight(ctx,x,y){
+   ctx.save();
+   ctx.fillStyle='rgba(8,16,12,.22)';ctx.beginPath();ctx.ellipse(x,y+2,7,3,0,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#2b2f30';ctx.fillRect(x-2,y-58,4,58);
+   ctx.fillStyle='#3a4042';ctx.fillRect(x-6,y-2,12,4);
+   ctx.beginPath();ctx.moveTo(x,y-58);ctx.lineTo(x+16,y-64);ctx.lineTo(x+16,y-60);ctx.lineTo(x+3,y-54);ctx.closePath();ctx.fill();
+   const glow=ctx.createRadialGradient(x+16,y-58,1,x+16,y-58,22);
+   glow.addColorStop(0,'rgba(255,229,140,.5)');glow.addColorStop(1,'rgba(255,229,140,0)');
+   ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x+16,y-58,22,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#ffe58c';ctx.beginPath();ctx.arc(x+16,y-58,4,0,Math.PI*2);ctx.fill();
+   ctx.restore();
+ }
+ powerPole(ctx,x,y,h=70){
+   ctx.save();
+   ctx.fillStyle='#5a4632';ctx.fillRect(x-3,y-h,6,h);
+   ctx.fillStyle='#4a3a28';ctx.fillRect(x-16,y-h,32,4);
+   ctx.strokeStyle='#2c2620';ctx.lineWidth=1;
+   for(let i=-1;i<=1;i++){ctx.beginPath();ctx.moveTo(x+i*10,y-h+2);ctx.lineTo(x+i*10,y-h+10);ctx.stroke()}
+   ctx.restore();
+ }
+ stall(ctx,x,y,label='TEA'){
+   ctx.save();
+   ctx.fillStyle='rgba(8,16,12,.25)';ctx.fillRect(x-6,y+30,58,6);
+   ctx.fillStyle='#5a3c28';ctx.fillRect(x-2,y-6,4,36);ctx.fillRect(x+42,y-6,4,36);
+   ctx.fillStyle='#7a5037';ctx.fillRect(x,y,44,30);
+   ctx.fillStyle='#5d3d29';ctx.fillRect(x,y+22,44,8);
+   const stripes=['#d1452f','#f2ead2'];
+   for(let i=0;i<6;i++){ctx.fillStyle=stripes[i%2];ctx.fillRect(x-8+i*9,y-14,9,10)}
+   ctx.fillStyle='#a7afb0';ctx.fillRect(x-8,y-16,52,4);
+   ctx.strokeStyle='#3a2c22';ctx.beginPath();ctx.moveTo(x+22,y-2);ctx.lineTo(x+22,y+6);ctx.stroke();
+   ctx.fillStyle='#ffe27a';ctx.beginPath();ctx.arc(x+22,y+8,3,0,Math.PI*2);ctx.fill();
+   ctx.fillStyle='#f6d36d';ctx.font='bold 8px monospace';ctx.textAlign='left';
+   ctx.fillText(label,x+7,y+17);
+   ctx.fillStyle='#8a5a3a';ctx.fillRect(x+50,y+20,8,10);
+   ctx.restore();
+ }
+ pond(ctx,x,y,w,h){
+   ctx.save();
+   ctx.fillStyle='#2e665d';ctx.fillRect(x,y,w,h);
+   ctx.fillStyle='#255a4f';ctx.fillRect(x,y,w,4);
+   ctx.fillStyle='#4b8d7c';
+   for(let i=0;i<8;i++){
+     const rx=x+5+hash2(x+i*3.1,y)*(w-15), ry=y+5+hash2(x,y+i*4.7)*(h-15);
+     ctx.fillRect(rx,ry,hash2(rx,ry)*8+6,2);
+   }
+   ctx.fillStyle='#3f7a55';
+   for(let i=0;i<4;i++){
+     const lx=x+10+hash2(x*2+i,y)*(w-24), ly=y+10+hash2(x,y*2+i)*(h-24);
+     ctx.beginPath();ctx.ellipse(lx,ly,7,4,0,0,Math.PI*2);ctx.fill();
+   }
+   ctx.strokeStyle='#1c4038';ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+   ctx.restore();
+ }
+ drawSchool(ctx){
+   this.building(ctx,210,45,410,145,'#a96b58','#733f35','SCHOOL / COLLEGE','school');
+   ctx.fillStyle='#cda97b';ctx.fillRect(230,205,330,105);
+   ctx.save();ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=2;
+   ctx.strokeRect(238,213,314,89);ctx.beginPath();ctx.arc(395,257,26,0,Math.PI*2);ctx.stroke();ctx.restore();
+   for(let i=0;i<5;i++)this.tree(ctx,120+i*150,215+(i%2)*20,true);
+   this.stall(ctx,60,285,'CHA');this.stall(ctx,825,280,'SNACK');
+   this.pond(ctx,700,55,150,90);
+   // playground swing set
+   ctx.save();ctx.strokeStyle='#6b6f6f';ctx.lineWidth=3;
+   ctx.beginPath();ctx.moveTo(500,215);ctx.lineTo(500,180);ctx.lineTo(560,180);ctx.lineTo(560,215);ctx.stroke();
+   ctx.strokeStyle='#8a6a3d';ctx.lineWidth=1;
+   ctx.beginPath();ctx.moveTo(520,180);ctx.lineTo(520,205);ctx.moveTo(540,180);ctx.lineTo(540,205);ctx.stroke();
+   ctx.fillStyle='#c9853d';ctx.fillRect(514,205,12,4);ctx.fillRect(534,205,12,4);
+   ctx.restore();
+   this.road(ctx);
+   for(let px=40;px<W;px+=220)this.streetlight(ctx,px,this.roadY-46);
+   for(let px=90;px<W;px+=260)this.powerPole(ctx,px,this.roadY+56);
+ }
+ drawUniversity(ctx){
+   this.building(ctx,75,50,280,130,'#9b7960','#5b4034','ACADEMIC','institutional');
+   this.building(ctx,575,55,285,125,'#8d6f57','#554032','HALL','residential');
+   ctx.fillStyle='#b9a378';ctx.fillRect(380,70,150,140);
+   ctx.fillStyle='#2c684a';ctx.fillRect(390,80,130,120);
+   this.pond(ctx,400,92,110,78);
+   for(let i=0;i<8;i++)this.tree(ctx,75+i*110,245+(i%2)*14,false);
+   this.stall(ctx,65,470,'FUCHKA');this.stall(ctx,820,465,'TEA');
+   // flagpole and notice board near the academic block
+   ctx.save();
+   ctx.strokeStyle='#cfcfcf';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(230,50);ctx.lineTo(230,10);ctx.stroke();
+   ctx.fillStyle='#2f8a44';ctx.fillRect(230,10,16,10);
+   ctx.fillStyle='#7a5a3a';ctx.fillRect(300,60,24,34);ctx.fillStyle='#f2ead2';ctx.fillRect(303,63,18,26);
+   ctx.restore();
+   // bicycle stand
+   ctx.save();ctx.strokeStyle='#5a6a6f';ctx.lineWidth=2;
+   for(let i=0;i<4;i++){ctx.beginPath();ctx.arc(660+i*16,470,7,0,Math.PI*2);ctx.stroke()}
+   ctx.restore();
+   this.road(ctx);
+   for(let px=40;px<W;px+=230)this.streetlight(ctx,px,this.roadY-46);
+   for(let px=60;px<W;px+=250)this.powerPole(ctx,px,this.roadY+58);
+ }
+ drawGarments(ctx){
+   this.building(ctx,45,50,360,165,'#8b8f93','#4a5157','GARMENTS','office');
+   this.building(ctx,520,55,360,160,'#8793a8','#46505f','OFFICE','office');
+   ctx.fillStyle='#59636a';ctx.fillRect(420,75,60,135);
+   ctx.fillStyle='#c9a846';for(let i=0;i<4;i++)ctx.fillRect(430+i*11,90,7,95);
+   // smoke stack
+   ctx.save();
+   ctx.fillStyle='#6a6f70';ctx.fillRect(96,20,14,40);
+   ctx.fillStyle='rgba(200,200,200,.35)';
+   ctx.beginPath();ctx.ellipse(103,14,10,6,0,0,Math.PI*2);ctx.fill();
+   ctx.beginPath();ctx.ellipse(108,0,14,8,0,0,Math.PI*2);ctx.fill();
+   ctx.restore();
+   this.stall(ctx,80,245,'LUNCH');this.stall(ctx,810,245,'TEA');
+   for(let i=0;i<5;i++)this.tree(ctx,145+i*165,265,false);
+   this.road(ctx);
+   for(let px=40;px<W;px+=220)this.streetlight(ctx,px,this.roadY-44);
+   // loading yard with shipping containers
+   ctx.fillStyle='#595e5d';ctx.fillRect(0,470,W,130);
+   for(let i=0;i<8;i++){
+     const cx=40+i*115;
+     ctx.fillStyle=['#c65a3a','#3a7fc6','#c6a13a'][i%3];ctx.fillRect(cx,500,60,40);
+     ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(cx,500,60,6);
+     ctx.strokeStyle='rgba(0,0,0,.3)';ctx.strokeRect(cx,500,60,40);
+   }
+   for(let px=70;px<W;px+=260)this.powerPole(ctx,px,470);
+ }
+ drawDense(ctx){
+   for(let r=0;r<2;r++)for(let c=0;c<7;c++){
+     const x=25+c*132,y=35+r*125;
+     this.building(ctx,x,y,105,95,['#a65d55','#8c7761','#6f7f8b'][c%3],'#4e3b36',c%2?'FLAT':'SHOP',c%2?'dense':'generic');
+   }
+   // clotheslines strung between rooftops
+   ctx.save();ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1;
+   for(let c=0;c<6;c++){
+     const x1=25+c*132+105, y1=31, x2=25+(c+1)*132, y2=31;
+     ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+     ctx.fillStyle=['#e0e0e0','#5f8eff','#ef775f'][c%3];
+     ctx.fillRect((x1+x2)/2-4,y1,6,10);
+   }
+   ctx.restore();
+   this.road(ctx);
+   for(let i=0;i<8;i++)this.stall(ctx,20+i*117,440+(i%2)*25,['FISH','VEG','TEA','RICE'][i%4]);
+   for(let i=0;i<4;i++)this.tree(ctx,140+i*210,545,false);
+   for(let px=60;px<W;px+=210)this.streetlight(ctx,px,this.roadY-42);
+   for(let px=40;px<W;px+=260)this.powerPole(ctx,px,this.roadY+60,50);
+ }
+ drawRiver(ctx){
+   ctx.fillStyle='#6f914f';ctx.fillRect(0,0,W,H);
+   this.building(ctx,65,55,250,120,'#9a7652','#60472f','RURAL MARKET','institutional');
+   this.stall(ctx,340,92,'FISH');this.stall(ctx,410,110,'VEG');
+   for(let i=0;i<6;i++){ if(i%2===0) this.tree(ctx,70+i*145,240+(i%2)*15,false); else this.treePalm(ctx,70+i*145,235) }
+   this.road(ctx,330,70);
+   for(let px=40;px<W;px+=230)this.streetlight(ctx,px,330-42);
+
+   // water body
+   ctx.fillStyle='#35563d';ctx.fillRect(0,430,W,170);
+   ctx.fillStyle='#173336';
+   ctx.beginPath();
+   ctx.moveTo(0,455);
+   ctx.bezierCurveTo(220,410,410,520,610,462);
+   ctx.bezierCurveTo(760,420,860,470,960,440);
+   ctx.lineTo(960,600);ctx.lineTo(0,600);ctx.closePath();ctx.fill();
+
+   // riverside huts
+   for(let i=0;i<5;i++){
+     const hx=55+i*165, hy=400+(i%2)*30;
+     ctx.fillStyle='#6f4d30';ctx.fillRect(hx,hy,85,48);
+     ctx.fillStyle='#49321f';
+     ctx.beginPath();ctx.moveTo(hx-10,hy);ctx.lineTo(hx+42,hy-30);ctx.lineTo(hx+95,hy);ctx.fill();
+     ctx.fillStyle='#2c1f14';ctx.fillRect(hx+34,hy+18,16,30);
+   }
+
+   // moored fishing boats (decorative)
+   ctx.save();
+   for(let i=0;i<3;i++){
+     const bx=140+i*300, by=470+(i%2)*40;
+     ctx.fillStyle='#8a5a34';
+     ctx.beginPath();ctx.moveTo(bx-26,by+6);ctx.lineTo(bx+26,by+6);ctx.lineTo(bx+16,by+16);ctx.lineTo(bx-18,by+16);ctx.closePath();ctx.fill();
+     ctx.strokeStyle='#4a2f1c';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx,by+6);ctx.lineTo(bx,by-22);ctx.stroke();
+   }
+   ctx.restore();
+
+   // reeds along the bank (stable, hash-seeded positions)
+   ctx.save();ctx.strokeStyle='#4d7a4a';ctx.lineWidth=2;
+   for(let i=0;i<26;i++){
+     const rx=hash2(i,3.14)*W, ry=430+hash2(7.2,i)*14, lean=(hash2(i,i)-.5)*10;
+     ctx.beginPath();ctx.moveTo(rx,ry+18);ctx.quadraticCurveTo(rx+lean,ry,rx+lean*1.6,ry-20);ctx.stroke();
+   }
+   ctx.restore();
+
+   // suspended sediment / algae texture — now stable instead of flickering every frame
+   ctx.fillStyle='rgba(88,104,84,.7)';
+   for(let i=0;i<20;i++){
+     const px=hash2(i,11.7)*950, py=455+hash2(i,42.3)*130, pw=4+hash2(i,3.3)*7, ph=2+hash2(i,9.9)*3;
+     ctx.fillRect(px,py,pw,ph);
+   }
+ }
+ drawLitter(ctx,l){ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.rot);if(l.type==='Plastic'){ctx.fillStyle='#67c9ff';ctx.fillRect(-3,-6,6,12);ctx.fillStyle='#eee';ctx.fillRect(-2,-2,4,2)}else if(l.type==='Paper'){ctx.fillStyle='#f1ead9';ctx.fillRect(-6,-4,12,8);ctx.fillStyle='#aaa';ctx.fillRect(-4,-1,7,1)}else if(l.type==='E-Waste'){ctx.fillStyle='#2b8c4e';ctx.fillRect(-6,-5,12,10);ctx.fillStyle='#d8c04b';ctx.fillRect(-2,-2,4,4)}else{ctx.fillStyle='#d9b13f';ctx.beginPath();ctx.arc(0,0,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6f7f35';ctx.fillRect(1,-7,2,5)}ctx.restore()}
+}
+
+const game={
+ levelIndex:0,world:null,money:0,time:0,epi:0,publicShare:50,civicTrust:0,rewardTime:0,adTime:0,paused:false,running:false,placing:false,selectedBin:null,event:null,eventTimer:0,eventCooldown:22,elapsed:0,offerMaterial:'Plastic',offers:[]
+};
+
+let save=loadSave();
+function loadSave(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))||{unlocked:1,best:{}}}catch{return{unlocked:1,best:{}}}}
+function storeSave(){localStorage.setItem(SAVE_KEY,JSON.stringify(save))}
+function ledger(){try{return JSON.parse(localStorage.getItem(LEDGER_KEY))||[]}catch{return[]}}
+function writeLedger(entry){const a=ledger();a.unshift({time:new Date().toLocaleString(),...entry});localStorage.setItem(LEDGER_KEY,JSON.stringify(a.slice(0,250)))}
+
+function feed(msg,type='info'){const d=document.createElement('div');d.className=type;d.textContent='› '+msg;$('#eventFeed').prepend(d);while($('#eventFeed').children.length>60)$('#eventFeed').lastChild.remove()}
+function startLevel(index){
+ game.levelIndex=index;const cfg=LEVELS[index];game.world=new LevelWorld(cfg);game.money=cfg.money;game.time=cfg.time;game.epi=0;game.publicShare=Number($('#shareSlider').value);game.civicTrust=0;game.rewardTime=0;game.adTime=0;game.paused=false;game.running=true;game.placing=false;game.event=null;game.eventTimer=0;game.eventCooldown=randi(18,28);game.elapsed=0;$('#eventFeed').innerHTML='';hideAllModals();$('#gameScreen').hidden=false;$('#landing').hidden=true;recomputeEpi();feed(cfg.desc,'info');feed('Objective: reduce EPI to exactly 0% before time expires.','good');renderLevelStrip();updateUI();
+}
+function recomputeEpi(){if(!game.world)return;const litterKg=game.world.litter.reduce((s,l)=>s+l.kg,0),overflow=game.world.bins.filter(b=>b.full).length*18,river=0;game.epi=clamp((litterKg/(game.world.cfg.initialLitter*5))*100*game.world.cfg.pollutionScale+overflow+river,0,100);if(game.world.litter.length===0&&overflow===0)game.epi=0;}
+function avgMood(){if(!game.world?.npcs.length)return clamp(50+(game.publicShare-50)*.9+game.civicTrust*.15+(game.rewardTime?20:0)+(game.adTime?10:0)-game.epi*.2,0,100);return game.world.npcs.reduce((s,n)=>s+n.mood,0)/game.world.npcs.length}
+function tick(){if(!game.running||game.paused||!game.world)return;game.elapsed++;game.world.update();if(game.elapsed%30===0){game.time=Math.max(0,game.time-1);if(game.rewardTime>0)game.rewardTime--;if(game.adTime>0)game.adTime--;if(game.eventTimer>0){game.eventTimer--;if(game.eventTimer<=0){feed('Event ended: '+game.event.name,'info');game.event=null;$('#eventBanner').hidden=true}}else{game.eventCooldown--;if(game.eventCooldown<=0)triggerEvent()}recomputeEpi();if(game.time<=0){finish(false);return}if(game.epi===0&&game.elapsed>30*18){finish(true);return}}
+}
+function triggerEvent(){const events=[
+ {name:'Monsoon Rush',text:'Rain drives pedestrians under awnings — crowd pressure rises.',spawn:1.55,traffic:.75,mood:-4},
+ {name:'Community Volunteer Wave',text:'Local volunteers are helping. Mood improves temporarily.',spawn:1,mood:14,traffic:1},
+ {name:'Office / Class Break',text:'A sudden break releases a larger crowd onto the street.',spawn:1.8,mood:-2,traffic:1.15},
+ {name:'Recycling Demand Spike',text:'Manufacturers are paying more for sorted material.',spawn:1,mood:0,traffic:1,price:1.22},
+ {name:'Traffic Jam',text:'Slower vehicles increase street congestion and citizen stress.',spawn:1.2,mood:-10,traffic:.45}
+ ];game.event=events[randi(0,events.length-1)];game.eventTimer=randi(12,18);game.eventCooldown=randi(26,42);$('#eventBanner').textContent=game.event.name+' — '+game.event.text;$('#eventBanner').hidden=false;feed('EVENT: '+game.event.name,'info')}
+function finish(win){game.running=false;game.paused=true;$('#endModal').hidden=false;if(win){sound.good();const id=game.world.cfg.id;save.best[id]={funds:Math.round(game.money),time:game.time};save.unlocked=Math.max(save.unlocked,Math.min(5,id+1));storeSave();$('#endTitle').textContent='LEVEL CLEARED';$('#endText').innerHTML=`<p>EPI reached <b style="color:var(--green)">0%</b> with ${game.time}s remaining.</p><p>Funds: <b>${money(game.money)}</b> · Civic trust: <b>${game.civicTrust.toFixed(0)}</b></p>`;$('#nextBtn').hidden=id>=5;}else{sound.bad();$('#endTitle').textContent='LEVEL FAILED';$('#endText').innerHTML=`<p>Time expired with EPI at <b style="color:var(--red)">${game.epi.toFixed(1)}%</b>.</p><p>Use a higher public share, more bin capacity, and reward drives to prevent fresh litter while volunteers remove existing trash.</p>`;$('#nextBtn').hidden=true}}
+function updateUI(){if(!game.world)return;const cfg=game.world.cfg;$('#topLevelTitle').textContent=`LEVEL ${cfg.id}/5 · ${cfg.name}`;$('#fundsStat').textContent=money(game.money);const m=Math.floor(game.time/60),s=game.time%60;$('#timeStat').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;$('#epiStat').textContent=game.epi.toFixed(1)+'%';$('#moodStat').textContent=avgMood().toFixed(0)+'%';$('#epiFill').style.width=game.epi+'%';$('#shareLabel').textContent=game.publicShare+'%';const wh=warehouseTotals();$('#wPaper').textContent=wh.Paper.toFixed(1)+' kg';$('#wPlastic').textContent=wh.Plastic.toFixed(1)+' kg';$('#wEwaste').textContent=wh['E-Waste'].toFixed(1)+' kg';$('#wOrganic').textContent=wh.Organic.toFixed(1)+' kg';$('#buyBinBtn').textContent=game.placing?'Click Map to Place':`Build Bin (${money(buildCost())})`;$('#rewardBtn').textContent=game.rewardTime?`Reward Active ${game.rewardTime}s`:'Reward Drive (৳1,000)';$('#adBtn').textContent=game.adTime?`Ads Active ${game.adTime}s`:'Ad Campaign (৳500)';$('#pauseBtn').textContent=game.paused?'▶':'⏸'}
+function warehouseTotals(){const wh={Paper:0,Plastic:0,'E-Waste':0,Organic:0};try{const raw=sessionStorage.getItem('tttWarehouse');if(raw)Object.assign(wh,JSON.parse(raw))}catch{}return wh}
+function setWarehouse(wh){sessionStorage.setItem('tttWarehouse',JSON.stringify(wh))}
+function buildCost(){return 1500+Math.max(0,game.world.bins.length-1)*450}
+
+function renderLevelStrip(){const nav=$('#levelStrip');nav.innerHTML='';LEVELS.forEach((l,i)=>{const d=document.createElement('div');d.className='level-chip '+(i===game.levelIndex?'current':l.id<save.unlocked?'done':l.id>save.unlocked?'locked':'');d.textContent=`${l.id}. ${l.short}`;if(l.id<=save.unlocked)d.onclick=()=>{if(confirm('Switch level? Current unsaved level progress will be lost.'))startLevel(i)};nav.appendChild(d)})}
+
+const canvas=$('#gameCanvas'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+function render(){if(game.world){game.world.draw(ctx);drawOverlay();}updateUI();requestAnimationFrame(render)}
+function drawOverlay(){ctx.save();ctx.fillStyle='rgba(6,12,10,.82)';ctx.fillRect(8,8,255,58);ctx.fillStyle='#ffd24a';ctx.font='bold 12px monospace';ctx.fillText(`EPI ${game.epi.toFixed(1)}%  |  ${money(game.money)}`,18,28);ctx.fillStyle='#eaf5ef';ctx.font='11px monospace';ctx.fillText(`Bins ${game.world.bins.length}/${game.world.cfg.binLimit} · Public share ${game.publicShare}%`,18,48);if(game.placing){ctx.fillStyle='rgba(255,210,74,.12)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#ffd24a';ctx.fillText('PLACEMENT MODE: tap a yellow placement zone',300,26)}if(game.paused&&game.running){ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';ctx.font='22px "Press Start 2P"';ctx.textAlign='center';ctx.fillText('PAUSED',W/2,H/2)}ctx.restore()}
+
+function canvasPoint(e){const r=canvas.getBoundingClientRect();const cx=e.touches?.[0]?.clientX??e.clientX,cy=e.touches?.[0]?.clientY??e.clientY;return{x:(cx-r.left)*W/r.width,y:(cy-r.top)*H/r.height}}
+canvas.addEventListener('click',e=>{if(game.paused||!game.running)return;const p=canvasPoint(e);for(const b of game.world.bins){if(Math.hypot(p.x-b.x,p.y-b.y)<28){openUpgrade(b);return}}if(game.placing){let nearest=null,bd=999;for(const z of game.world.placement){const d=Math.hypot(p.x-z.x,p.y-z.y);if(d<bd){bd=d;nearest=z}}if(nearest&&bd<30){if(game.world.bins.some(b=>Math.hypot(b.x-nearest.x,b.y-nearest.y)<15)){feed('That placement zone already has a bin.','bad');return}const cost=buildCost();if(game.money<cost){feed('Not enough funds for a new smart bin.','bad');return}game.money-=cost;game.world.bins.push(new SmartBin(nearest.x,nearest.y));game.placing=false;sound.coin();feed('Smart bin deployed for '+money(cost),'good')}else feed('Place bins only on yellow marked zones.','bad')}});
+
+function openUpgrade(bin){game.selectedBin=bin;const next=bin.level<5?BIN_CAP[bin.level+1]:BIN_CAP[5],cost=UPGRADE_COST[bin.level];$('#upgradeInfo').innerHTML=`<p>Current level: <b>L${bin.level}</b> · Capacity: <b>${bin.capacity} kg</b></p><p>Next capacity: <b>${next} kg</b>${bin.level<5?` · Upgrade cost: <b>${money(cost)}</b>`:' · Maximum level reached.'}</p><p>Current load: ${bin.total.toFixed(1)} / ${bin.capacity} kg</p>`;$('#upgradeConfirmBtn').disabled=bin.level>=5;$('#upgradeConfirmBtn').textContent=bin.level>=5?'MAX LEVEL':'Upgrade';$('#upgradeModal').hidden=false}
+$('#upgradeConfirmBtn').onclick=()=>{const b=game.selectedBin;if(!b||b.level>=5)return;const cost=UPGRADE_COST[b.level];if(game.money<cost){feed('Not enough funds for this upgrade.','bad');sound.bad();return}game.money-=cost;b.level++;sound.coin();feed(`Smart bin upgraded to Level ${b.level}. Capacity ${b.capacity} kg.`,'good');$('#upgradeModal').hidden=true};
+
+$('#buyBinBtn').onclick=()=>{if(!game.running)return;if(game.world.bins.length>=game.world.cfg.binLimit){feed('Bin limit reached for this level. Upgrade existing bins.','bad');return}if(game.money<buildCost()){feed('Not enough funds to build a bin.','bad');return}game.placing=!game.placing;sound.click()};
+$('#rewardBtn').onclick=()=>{if(game.money<1000||game.rewardTime>0)return;game.money-=1000;game.rewardTime=22;feed('Reward drive launched: citizens are motivated and volunteers collect litter.','good');sound.coin()};
+$('#adBtn').onclick=()=>{if(game.money<500||game.adTime>0)return;game.money-=500;game.adTime=18;feed('Public awareness campaign is live.','good');sound.coin()};
+$('#emptyBtn').onclick=()=>{const wh=warehouseTotals();let total=0;for(const b of game.world.bins){for(const m of MAT){const kg=b.stock[m];if(kg>0){wh[m]+=kg;total+=kg;writeLedger({level:game.world.cfg.id,type:'INTAKE',material:m,kg:+kg.toFixed(1),gross:'-',public:'-',net:'-',company:'Smart Bin '+b.level});b.stock[m]=0}}}setWarehouse(wh);recomputeEpi();if(total>0){feed(`Emptied ${total.toFixed(1)} kg into warehouse; ledger updated.`,'good');sound.good()}else{feed('All bins are already empty.','info');sound.click()}};
+
+$('#shareSlider').addEventListener('input',e=>{game.publicShare=Number(e.target.value);$('#shareLabel').textContent=game.publicShare+'%'});
+
+function openSales(){const wh=warehouseTotals(),available=MAT.filter(m=>wh[m]>=5);if(!available.length){feed('Warehouse has no saleable material yet. Empty bins first.','bad');sound.bad();return}game.offerMaterial=available.includes(game.offerMaterial)?game.offerMaterial:available[0];renderMaterialButtons();makeOffers();$('#salesModal').hidden=false}
+function renderMaterialButtons(){const wh=warehouseTotals(),box=$('#materialButtons');box.innerHTML='';MAT.forEach(m=>{const b=document.createElement('button');b.className='btn '+(m===game.offerMaterial?'warn':'');b.textContent=`${m} ${wh[m].toFixed(0)}kg`;b.disabled=wh[m]<5;b.onclick=()=>{game.offerMaterial=m;renderMaterialButtons();makeOffers()};box.appendChild(b)});$('#salesIntro').innerHTML=`Fair market reference for <b>${game.offerMaterial}</b>: about <b>${money(BASE_RATE[game.offerMaterial])}/kg</b>. Compare offers carefully; low-ball bids are common for high-value streams.`}
+function makeOffers(){const wh=warehouseTotals(),kg=Math.min(wh[game.offerMaterial],Math.max(10,Math.floor(wh[game.offerMaterial]/5)*5));const companies=[['GreenLoop Industries',rand(.72,1.12)],['Padma Materials Ltd.',rand(.82,1.20)],['Delta Reprocessors',rand(.68,1.26)]];const eventMult=game.event?.price||1;game.offers=companies.map(([name,mult])=>({name,kg,rate:BASE_RATE[game.offerMaterial]*mult*eventMult})).sort((a,b)=>b.rate-a.rate);const grid=$('#offerGrid');grid.innerHTML='';game.offers.forEach((o,i)=>{const gross=o.rate*o.kg,publicCut=gross*game.publicShare/100,net=gross-publicCut;const d=document.createElement('div');d.className='offer '+(i===0?'best':'');d.innerHTML=`<h4>${o.name}</h4><div><small>${o.kg.toFixed(0)} kg ${game.offerMaterial}</small></div><div class="rate">${money(o.rate)}/kg</div><div style="font-size:10px;margin-top:7px">Gross ${money(gross)}<br>Public share ${money(publicCut)}<br><b>Net ${money(net)}</b></div><button class="btn primary" style="width:100%;margin-top:9px">Accept</button>`;d.querySelector('button').onclick=()=>acceptOffer(o);grid.appendChild(d)})}
+function acceptOffer(o){const wh=warehouseTotals();if(wh[game.offerMaterial]<o.kg)return;const gross=o.rate*o.kg,publicCut=gross*game.publicShare/100,net=gross-publicCut;wh[game.offerMaterial]-=o.kg;setWarehouse(wh);game.money+=net;game.civicTrust=clamp(game.civicTrust+(game.publicShare/100)*12,0,100);writeLedger({level:game.world.cfg.id,type:'SALE',material:game.offerMaterial,kg:+o.kg.toFixed(1),gross:Math.round(gross),public:Math.round(publicCut),net:Math.round(net),company:o.name});feed(`Sold ${o.kg.toFixed(0)}kg ${game.offerMaterial} to ${o.name}; net ${money(net)}.`,'good');sound.coin();$('#salesModal').hidden=true}
+$('#salesBtn').onclick=openSales;$('#refreshOffersBtn').onclick=()=>{sound.bad();feed('Rejected all current offers; manufacturers submitted new bids.','info');makeOffers()};
+
+function openLedger(){const rows=ledger();$('#ledgerBody').innerHTML=rows.length?rows.map(r=>`<tr><td>${r.time}</td><td>${r.level}</td><td>${r.type}</td><td>${r.material}</td><td>${r.kg}</td><td>${r.gross}</td><td>${r.public}</td><td>${r.net}</td><td>${r.company}</td></tr>`).join(''):'<tr><td colspan="9">No ledger entries yet.</td></tr>';$('#ledgerModal').hidden=false}
+$('#ledgerBtn').onclick=openLedger;$('#clearLedgerBtn').onclick=()=>{if(confirm('Clear the entire local material ledger?')){localStorage.removeItem(LEDGER_KEY);openLedger()}};
+
+function hideAllModals(){['howModal','upgradeModal','salesModal','ledgerModal','endModal'].forEach(id=>$('#'+id).hidden=true)}
+$$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).hidden=true);
+$('#startBtn').onclick=()=>{sound.ensure();sessionStorage.removeItem('tttWarehouse');startLevel(0)};
+$('#howBtn').onclick=()=>$('#howModal').hidden=false;$('#helpBtn').onclick=()=>$('#howModal').hidden=false;
+$('#resetSaveBtn').onclick=()=>{if(confirm('Reset unlocked levels and saved best results?')){localStorage.removeItem(SAVE_KEY);save=loadSave();alert('Campaign save reset.')}};
+$('#muteBtn').onclick=()=>{sound.muted=!sound.muted;$('#muteBtn').textContent=sound.muted?'🔇':'🔊'};
+$('#pauseBtn').onclick=()=>{game.paused=!game.paused;updateUI()};$('#restartBtn').onclick=()=>{if(confirm('Restart this level?'))startLevel(game.levelIndex)};
+$('#menuBtn').onclick=()=>{$('#gameScreen').hidden=true;$('#landing').hidden=false;game.running=false};
+$('#retryBtn').onclick=()=>startLevel(game.levelIndex);$('#nextBtn').onclick=()=>startLevel(Math.min(4,game.levelIndex+1));$('#endMenuBtn').onclick=()=>{$('#endModal').hidden=true;$('#gameScreen').hidden=true;$('#landing').hidden=false};
+window.addEventListener('keydown',e=>{if($('#gameScreen').hidden)return;if(e.key.toLowerCase()==='p'){game.paused=!game.paused}if(e.key.toLowerCase()==='m'){sound.muted=!sound.muted;$('#muteBtn').textContent=sound.muted?'🔇':'🔊'}if(e.key==='Escape')game.placing=false});
+
+setInterval(tick,1000/30);requestAnimationFrame(render);renderLevelStrip();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Trash to Taka: Smart Clean BD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#0b0f14;
+    --bg-panel:#161d27;
+    --green:#22a37a;
+    --green-deep:#0c2e24;
+    --red:#d1352b;
+    --gold:#ffcc00;
+    --cream:#eef1ea;
+    --border:#2c3644;
+    --blue:#3296fa;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--bg-dark);
+    color:var(--cream);
+    font-family:'Space Mono', monospace;
+    overflow-x:hidden;
+  }
+  .screen{
+    min-height:100vh;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  [hidden]{ display:none !important; }
+
+  /* ---------- Landing ---------- */
+  #landing{
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(34,163,122,0.18), transparent 60%),
+      linear-gradient(180deg, var(--bg-dark) 0%, var(--green-deep) 130%);
+    flex-direction:column;
+    padding:40px 20px 0;
+  }
+  .scene{
+    position:absolute; left:0; right:0; bottom:0; height:110px;
+    overflow:hidden;
+    border-top:2px solid var(--border);
+    background:linear-gradient(180deg, rgba(12,46,36,0.4), rgba(11,15,20,0.9));
+  }
+  .scene-strip{
+    position:absolute; top:20px; left:0; white-space:nowrap;
+    font-size:34px;
+    animation: driveby 14s linear infinite;
+    opacity:0.85;
+  }
+  .scene-strip span{ display:inline-block; margin-right:90px; }
+  @keyframes driveby{
+    from{ transform:translateX(100vw); }
+    to{ transform:translateX(-40%); }
+  }
+  .landing-content{
+    max-width:640px;
+    width:100%;
+    text-align:center;
+    z-index:2;
+    padding-bottom:150px;
+  }
+  .tag{
+    font-size:13px;
+    letter-spacing:0.5px;
+    color:var(--green);
+    margin:0 0 18px;
+  }
+  .title{
+    font-family:'Press Start 2P', monospace;
+    font-size:38px;
+    line-height:1.5;
+    color:var(--cream);
+    margin:0 0 6px;
+    text-shadow: 3px 3px 0 var(--red);
+  }
+  .subtitle{
+    font-size:16px;
+    color:var(--gold);
+    letter-spacing:1px;
+    margin:0 0 22px;
+    font-weight:700;
+  }
+  .desc{
+    font-size:14.5px;
+    line-height:1.7;
+    color:#c7cdd6;
+    max-width:520px;
+    margin:0 auto 32px;
+  }
+  .btn-row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:26px;
+  }
+  .btn{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:14px;
+    padding:14px 26px;
+    border-radius:4px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:transform 0.08s ease, filter 0.15s ease;
+  }
+  .btn:hover{ filter:brightness(1.12); }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--green); color:#04140f; }
+  .btn-secondary{ background:transparent; color:var(--cream); border-color:var(--border); }
+  .btn-secondary:hover{ border-color:var(--green); }
+  .btn-ghost{ background:transparent; color:#8b93a0; border-color:transparent; }
+  .btn-ghost:hover{ color:var(--red); }
+  .btn-danger{ background:var(--red); color:#160404; }
+  .credits{ font-size:11.5px; color:#5b6472; }
+
+  /* ---------- Modals ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(6,8,11,0.78);
+    display:flex; align-items:center; justify-content:center;
+    z-index:50; padding:20px;
+  }
+  .modal{
+    background:var(--bg-panel);
+    border:2px solid var(--border);
+    border-radius:6px;
+    max-width:480px; width:100%;
+    padding:26px 28px;
+  }
+  .modal h2{
+    font-size:18px; margin:0 0 16px; color:var(--gold);
+    font-family:'Space Mono', monospace;
+  }
+  .modal p{ font-size:13.5px; line-height:1.7; color:#c7cdd6; }
+  .modal ul{ padding-left:18px; margin:0 0 18px; }
+  .modal li{
+    font-size:13px; line-height:1.75; color:#dfe4ea; margin-bottom:6px;
+  }
+  .modal li b{ color:var(--gold); }
+
+  /* ---------- Game screen ---------- */
+  #gameWrap{ flex-direction:column; background:var(--bg-dark); padding:10px; }
+  #topbar{
+    width:100%; max-width:896px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 10px;
+    background:var(--bg-panel);
+    border:2px solid var(--border);
+    border-bottom:none;
+    border-radius:6px 6px 0 0;
+  }
+  .topbar-title{
+    font-family:'Press Start 2P', monospace;
+    font-size:11px;
+    color:var(--gold);
+  }
+  .topbar-actions{ display:flex; gap:6px; }
+  .icon-btn{
+    background:var(--bg-dark);
+    border:1px solid var(--border);
+    color:var(--cream);
+    font-size:16px;
+    width:36px; height:32px;
+    border-radius:4px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ border-color:var(--green); }
+  .canvas-frame{
+    width:100%; max-width:896px;
+    border:2px solid var(--border);
+    border-radius:0 0 6px 6px;
+    overflow:hidden;
+    line-height:0;
+  }
+  #gameCanvas{
+    width:100%; height:auto; display:block;
+    image-rendering:pixelated;
+    image-rendering:crisp-edges;
+    background:#000;
+    touch-action:manipulation;
+    cursor:pointer;
+  }
+
+  @media (max-width:600px){
+    .title{ font-size:24px; }
+    .desc{ font-size:13px; }
+    .btn{ padding:12px 18px; font-size:12.5px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============ LANDING SCREEN ============ -->
+  <div id="landing" class="screen">
+    <div class="landing-content">
+      <p class="tag">a street-level cleanup sim</p>
+      <h1 class="title">Trash to<br>Taka</h1>
+      <p class="subtitle">SMART CLEAN BD</p>
+      <p class="desc">
+        Run the cleanup budget for the street outside Dhaka College. Place smart bins,
+        win over litterers with rewards and ad drives, and turn recovered waste into
+        Taka before the clock runs out — all without letting pollution take over.
+      </p>
+      <div class="btn-row">
+        <button id="btnStart" class="btn btn-primary">Start Game</button>
+        <button id="btnHowTo" class="btn btn-secondary">How to Play</button>
+        <button id="btnQuitLanding" class="btn btn-ghost">Quit</button>
+      </div>
+      <p class="credits">Trash to Taka · Smart Clean BD · v1.0</p>
+    </div>
+    <div class="scene">
+      <div class="scene-strip">
+        <span>🛺</span><span>🚶</span><span>🛵</span><span>🚲</span><span>🛺</span><span>🚶</span><span>🛵</span><span>🛺</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HOW TO PLAY MODAL ============ -->
+  <div id="howtoModal" class="modal-overlay" hidden>
+    <div class="modal">
+      <h2>How to Play</h2>
+      <ul>
+        <li><b>Goal:</b> Get the Environmental Pollution Index (EPI) below 30% before the timer hits zero.</li>
+        <li>Citizens wander in — happy ones (mood 70+) walk their waste to a bin; unhappy ones litter the street.</li>
+        <li><b>Give Reward</b> (Tk 1,000) temporarily lifts everyone's mood so they use the bins.</li>
+        <li><b>Buy Bin</b> (Tk 1,500) lets you place a smart bin on any sidewalk tile, up to 3 total.</li>
+        <li>Click an already-placed bin to open its <b>upgrade</b> panel and raise its capacity.</li>
+        <li><b>Launch Ad Campaign</b> (Tk 500) also boosts civic mood city-wide for a while.</li>
+        <li><b>Empty Bins</b> moves collected waste into your warehouse.</li>
+        <li><b>B2B Sales</b> opens a negotiation with a corporate buyer for your warehouse stock — accept, deny for a new offer, or close.</li>
+        <li>Watch the EPI gauge in the bottom panel — it needs to stay under the gold line by the time the clock runs out.</li>
+      </ul>
+      <button id="btnHowToClose" class="btn btn-primary">Got it</button>
+    </div>
+  </div>
+
+  <!-- ============ QUIT CONFIRM MODAL ============ -->
+  <div id="quitConfirm" class="modal-overlay" hidden>
+    <div class="modal">
+      <h2>Quit the game?</h2>
+      <p>Your current progress won't be saved.</p>
+      <div class="btn-row" style="margin-top:18px; margin-bottom:0;">
+        <button id="btnQuitYes" class="btn btn-danger">Yes, quit</button>
+        <button id="btnQuitNo" class="btn btn-secondary">Keep playing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GOODBYE / QUIT SCREEN ============ -->
+  <div id="quitScreen" class="screen" hidden>
+    <div class="landing-content">
+      <h1 class="title" style="font-size:26px;">Thanks for<br>playing</h1>
+      <p class="desc">You can close this browser tab now, or jump back into the menu any time.</p>
+      <div class="btn-row">
+        <button id="btnBackToMenu" class="btn btn-primary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div id="gameWrap" class="screen" hidden>
+    <div id="topbar">
+      <span class="topbar-title">TRASH TO TAKA</span>
+      <div class="topbar-actions">
+        <button id="btnHelp" class="icon-btn" title="How to play">❓</button>
+        <button id="btnMute" class="icon-btn" title="Mute">🔊</button>
+        <button id="btnPause" class="icon-btn" title="Pause">⏸</button>
+        <button id="btnRestart" class="icon-btn" title="Restart">🔄</button>
+        <button id="btnQuitGame" class="icon-btn" title="Quit">✕</button>
+      </div>
+    </div>
+    <div class="canvas-frame">
+      <canvas id="gameCanvas" width="896" height="776"></canvas>
+    </div>
+  </div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   CONFIG  (ported from config.py)
+   ========================================================= */
+const TILE_SIZE = 32;
+const GRID_COLS = 28;
+const GRID_ROWS = 18;
+const SCREEN_WIDTH = GRID_COLS * TILE_SIZE;              // 896
+const SCREEN_HEIGHT = (GRID_ROWS * TILE_SIZE) + 200;      // 776
+
+const COLORS = {
+  ASPHALT:      '#3B3A3A',
+  SIDEWALK:     '#8C8275',
+  BRICK:        '#A64B2A',
+  GRASS:        '#88B04B',
+  PLASTER:      '#E6D7C3',
+  TIN:          '#B8C0C2',
+  WOOD:         '#8D5B4C',
+  RICK_YELLOW:  '#FFD166',
+  BIN_GREEN:    '#2A9D8F',
+  UI_BG:        '#141820',
+  UI_PANEL:     '#232A36',
+  UI_BORDER:    '#3C485A',
+  TEXT_LIGHT:   '#F0F4F8',
+  GOLD:         '#FFCC00',
+  DANGER:       '#EB4132',
+  ACCENT_BLUE:  '#3296FA',
+  ACCENT_GREEN: '#28C864'
+};
+
+const MAX_BINS_LEVEL_1 = 3;
+const REWARD_DEBT_AMOUNT = 1000.0;
+const AD_CAMPAIGN_COST = 500.0;
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pointInRect(x, y, r){ return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+function makeCanvas(w, h){ const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function roundRectPath(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* =========================================================
+   SOUND MANAGER  (synthesized Web Audio, no external files)
+   ========================================================= */
+class SoundManager{
+  constructor(){
+    this.ctx = null;
+    this.muted = false;
+    this.musicOn = false;
+    this.musicTimer = null;
+  }
+  ensure(){
+    if(!this.ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) this.ctx = new AC();
+    }
+    if(this.ctx && this.ctx.state === 'suspended'){ this.ctx.resume(); }
+  }
+  tone(freq, duration, type='square', vol=0.15, delay=0, slideTo=null){
+    if(this.muted || !this.ctx) return;
+    const t0 = this.ctx.currentTime + delay;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if(slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + duration);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(t0); osc.stop(t0 + duration + 0.03);
+  }
+  click(){ this.tone(600, 0.05, 'square', 0.10); }
+  coin(){ this.tone(880, 0.08, 'square', 0.12); this.tone(1320, 0.09, 'square', 0.12, 0.07); }
+  place(){ this.tone(220, 0.09, 'triangle', 0.16); }
+  deny(){ this.tone(180, 0.16, 'sawtooth', 0.12, 0, 120); }
+  accept(){ this.tone(660, 0.10, 'square', 0.12); this.tone(880, 0.10, 'square', 0.12, 0.09); this.tone(1100, 0.16, 'square', 0.12, 0.18); }
+  drop(){ this.tone(140, 0.06, 'sine', 0.05); }
+  deposit(){ this.tone(500, 0.05, 'sine', 0.07); this.tone(700, 0.06, 'sine', 0.07, 0.05); }
+  alert(){ this.tone(300, 0.13, 'square', 0.12); this.tone(300, 0.13, 'square', 0.12, 0.19); }
+  win(){ [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.20, 'square', 0.14, i * 0.16)); }
+  lose(){ [400, 340, 280, 220].forEach((f, i) => this.tone(f, 0.26, 'sawtooth', 0.10, i * 0.19)); }
+  toggleMute(){ this.muted = !this.muted; if(this.muted){ this.stopMusic(); } return this.muted; }
+  startMusic(){
+    if(this.musicOn) return;
+    this.ensure();
+    this.musicOn = true;
+    const notes = [220, 247, 262, 294, 330, 294, 262, 247];
+    let i = 0;
+    this.musicTimer = setInterval(() => {
+      if(!this.muted) this.tone(notes[i % notes.length] / 2, 0.32, 'triangle', 0.045);
+      i++;
+    }, 620);
+  }
+  stopMusic(){ this.musicOn = false; if(this.musicTimer){ clearInterval(this.musicTimer); this.musicTimer = null; } }
+}
+const sound = new SoundManager();
+
+/* =========================================================
+   TEXTURES  (ported from asset.py generate_textures)
+   ========================================================= */
+function generateTextures(){
+  const textures = {};
+
+  // Asphalt
+  let c = makeCanvas(32, 32), ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.ASPHALT; ctx.fillRect(0, 0, 32, 32);
+  ctx.fillStyle = '#2D2C2C';
+  for(let i = 0; i < 12; i++){ ctx.fillRect(randInt(0,31), randInt(0,31), 1, 1); }
+  textures.asphalt = c;
+
+  // Sidewalk
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.SIDEWALK; ctx.fillRect(0, 0, 32, 32);
+  ctx.strokeStyle = '#6E6459'; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, 31, 31);
+  textures.sidewalk = c;
+
+  // Grass
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.GRASS; ctx.fillRect(0, 0, 32, 32);
+  ctx.fillStyle = '#6E9637';
+  for(let i = 0; i < 8; i++){ ctx.fillRect(randInt(0,31), randInt(0,31), 1, 1); }
+  textures.grass = c;
+
+  // Brick wall
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.BRICK; ctx.fillRect(0, 0, 32, 32);
+  ctx.strokeStyle = '#78321E'; ctx.lineWidth = 1;
+  for(let y = 0; y < 32; y += 8){ ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(31, y + 0.5); ctx.stroke(); }
+  for(let x = 0; x < 32; x += 8){ ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, 31); ctx.stroke(); }
+  textures.brick = c;
+
+  // Plaster wall
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.PLASTER; ctx.fillRect(0, 0, 32, 32);
+  ctx.strokeStyle = '#BEAF9B'; ctx.strokeRect(0.5, 0.5, 31, 31);
+  textures.plaster = c;
+
+  // Tong tea stall
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.TIN; ctx.fillRect(0, 0, 32, 10);
+  ctx.fillStyle = COLORS.WOOD; ctx.fillRect(2, 10, 28, 22);
+  textures.tong = c;
+
+  // Smart bins level 1-3
+  for(let level = 1; level <= 3; level++){
+    c = makeCanvas(32, 32); ctx = c.getContext('2d');
+    const color = level < 3 ? COLORS.BIN_GREEN : '#1EB4C8';
+    ctx.fillStyle = color; roundRectPath(ctx, 6, 8, 20, 22, 3); ctx.fill();
+    ctx.fillStyle = '#C8C8C8'; roundRectPath(ctx, 4, 4, 24, 5, 1); ctx.fill();
+    if(level >= 2){ ctx.fillStyle = '#283250'; ctx.fillRect(8, 0, 16, 4); }
+    textures['bin_lvl_' + level] = c;
+  }
+
+  // Rickshaw overlay sprite (matches original's extra top-level blit)
+  c = makeCanvas(32, 32); ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS.RICK_YELLOW; roundRectPath(ctx, 6, 4, 20, 16, 4); ctx.fill();
+  ctx.fillStyle = '#141414';
+  ctx.beginPath(); ctx.arc(8, 26, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(24, 26, 4, 0, Math.PI * 2); ctx.fill();
+  textures.rickshaw = c;
+
+  return textures;
+}
+
+/* =========================================================
+   LEVEL STATE  (ported from level.py LevelState)
+   ========================================================= */
+class LevelState{
+  constructor(){
+    this.money = 1500.0;
+    this.ad_active = false;
+    this.ad_timer = 0;
+    this.clean_drive_timer = 0;
+    this.epi = 0.0;
+    this.time_left = 240;
+    this.game_over = false;
+    this.game_won = false;
+    this.warehouse = { Paper: 0.0, Plastic: 0.0, Organic: 0.0, 'E-Waste': 0.0 };
+  }
+}
+
+/* =========================================================
+   SMART BIN  (ported from entities/smart_bin.py)
+   ========================================================= */
+class SmartBin{
+  constructor(gx, gy, isStartingBin = false){
+    this.grid_x = gx; this.grid_y = gy;
+    this.world_x = gx * TILE_SIZE; this.world_y = gy * TILE_SIZE;
+    this.level = 1;
+    this.max_capacity = 100.0;
+    this.is_starting_bin = isStartingBin;
+    this.current_stock = { Paper: 0.0, Plastic: 0.0, Organic: 0.0, 'E-Waste': 0.0 };
+    this._wasOverflow = false;
+  }
+  get total_weight(){ return Object.values(this.current_stock).reduce((a, b) => a + b, 0); }
+  draw(ctx, texture){
+    ctx.drawImage(texture, this.world_x, this.world_y);
+    const ratio = Math.min(1.0, this.total_weight / this.max_capacity);
+    const bw = 24, bh = 4, bx = this.world_x + 4, by = this.world_y - 6;
+    ctx.fillStyle = '#323232'; ctx.fillRect(bx, by, bw, bh);
+    const fillColor = ratio > 0.8 ? COLORS.DANGER : (ratio > 0.5 ? '#FFB400' : COLORS.ACCENT_GREEN);
+    ctx.fillStyle = fillColor; ctx.fillRect(bx, by, Math.floor(bw * ratio), bh);
+    ctx.strokeStyle = '#C8C8C8'; ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+  }
+  canUpgrade(money){
+    const cost = this.level * 2500;
+    return money >= cost && this.level < 3 && !this.is_starting_bin;
+  }
+  upgrade(levelState){
+    const cost = this.level * 2500;
+    if(levelState.money >= cost && this.level < 3 && !this.is_starting_bin){
+      levelState.money -= cost;
+      this.level += 1;
+      this.max_capacity = this.level === 1 ? 100.0 : (this.level === 2 ? 250.0 : 500.0);
+      return true;
+    }
+    return false;
+  }
+}
+
+/* =========================================================
+   RICKSHAW  (ported from entities/rickshaw.py)
+   ========================================================= */
+class Rickshaw{
+  constructor(screenWidth, laneYEast, laneYWest){
+    this.screenWidth = screenWidth;
+    this.laneYEast = laneYEast;
+    this.laneYWest = laneYWest;
+    this.respawn_timer = 0;
+    this.resetPosition();
+  }
+  resetPosition(){
+    this.direction_type = Math.random() < 0.5 ? 'EAST' : 'WEST';
+    this.speed = 1.8 + Math.random() * (2.5 - 1.8);
+    if(this.direction_type === 'EAST'){ this.x = -60.0; this.y = this.laneYEast; this.direction = 'RIGHT'; }
+    else { this.x = this.screenWidth + 60; this.y = this.laneYWest; this.direction = 'LEFT'; }
+  }
+  update(){
+    if(this.respawn_timer > 0){ this.respawn_timer -= 1; return; }
+    if(this.direction === 'RIGHT'){
+      this.x += this.speed;
+      if(this.x > this.screenWidth + 80){ this.respawn_timer = randInt(60, 180); this.resetPosition(); }
+    } else {
+      this.x -= this.speed;
+      if(this.x < -80){ this.respawn_timer = randInt(60, 180); this.resetPosition(); }
+    }
+  }
+  draw(ctx){
+    if(this.respawn_timer > 0) return;
+    ctx.save();
+    const flip = this.direction === 'LEFT';
+    ctx.translate(this.x, this.y);
+    if(flip){ ctx.translate(32, 0); ctx.scale(-1, 1); }
+    ctx.fillStyle = '#DC2828'; roundRectPath(ctx, 4, 2, 16, 10, 3); ctx.fill();
+    ctx.fillStyle = '#F0C828'; ctx.fillRect(6, 4, 12, 6);
+    ctx.fillStyle = '#323232'; ctx.fillRect(4, 12, 16, 4);
+    ctx.strokeStyle = '#1E1E1E'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(20, 14); ctx.lineTo(28, 14); ctx.stroke();
+    ctx.fillStyle = '#141414';
+    ctx.beginPath(); ctx.arc(8, 16, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(28, 16, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* =========================================================
+   CNG VEHICLE  (ported from entities/cng_vehicle.py)
+   ========================================================= */
+class CNGVehicle{
+  constructor(screenWidth, laneYEast, laneYWest){
+    this.screenWidth = screenWidth;
+    this.laneYEast = laneYEast;
+    this.laneYWest = laneYWest;
+    this.respawn_timer = randInt(30, 90);
+    this.resetPosition();
+  }
+  resetPosition(){
+    this.direction_type = Math.random() < 0.5 ? 'EAST' : 'WEST';
+    this.speed = 3.0 + Math.random() * (4.2 - 3.0);
+    if(this.direction_type === 'EAST'){ this.x = -60.0; this.y = this.laneYEast; this.direction = 'RIGHT'; }
+    else { this.x = this.screenWidth + 60; this.y = this.laneYWest; this.direction = 'LEFT'; }
+  }
+  update(){
+    if(this.respawn_timer > 0){ this.respawn_timer -= 1; return; }
+    if(this.direction === 'RIGHT'){
+      this.x += this.speed;
+      if(this.x > this.screenWidth + 80){ this.respawn_timer = randInt(90, 240); this.resetPosition(); }
+    } else {
+      this.x -= this.speed;
+      if(this.x < -80){ this.respawn_timer = randInt(90, 240); this.resetPosition(); }
+    }
+  }
+  draw(ctx){
+    if(this.respawn_timer > 0) return;
+    ctx.save();
+    const flip = this.direction === 'LEFT';
+    ctx.translate(this.x, this.y);
+    if(flip){ ctx.translate(32, 0); ctx.scale(-1, 1); }
+    ctx.fillStyle = '#1E8C3C'; roundRectPath(ctx, 2, 4, 26, 14, 4); ctx.fill();
+    ctx.fillStyle = '#145A28'; ctx.fillRect(2, 14, 26, 4);
+    ctx.fillStyle = '#F0D232'; ctx.fillRect(6, 2, 20, 4);
+    ctx.fillStyle = '#A0D2E6'; ctx.fillRect(18, 6, 8, 6);
+    ctx.fillStyle = '#646E64'; ctx.fillRect(6, 6, 8, 5);
+    ctx.fillStyle = '#0F0F0F';
+    ctx.beginPath(); ctx.arc(8, 18, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(24, 18, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* =========================================================
+   CITIZEN NPC  (ported from entities/citizen.py)
+   ========================================================= */
+class CitizenNPC{
+  constructor(spawnX, spawnY, archetype = 'Student'){
+    this.x = spawnX; this.y = spawnY;
+    this.vx = 0.0; this.vy = 0.0;
+    this.speed = archetype === 'Student' ? 2.0 : 1.4;
+    this.archetype = archetype;
+    this.has_waste = Math.random() < 0.5;
+    const wasteChoices = ['Paper', 'Paper', 'Plastic', 'Organic'];
+    this.waste_type = this.has_waste ? wasteChoices[randInt(0, wasteChoices.length - 1)] : null;
+    this.mood = 20.0 + Math.random() * (45.0 - 20.0);
+    this.target_bin = null;
+    this.picked_up_litter = null;
+  }
+  updateMood(levelState){
+    if(levelState.clean_drive_timer > 0 || levelState.ad_active){
+      this.mood = 100.0;
+    } else {
+      let decay = 0.08;
+      if(levelState.epi > 40){ decay += (levelState.epi - 40) * 0.003; }
+      this.mood = Math.max(0.0, Math.min(100.0, this.mood - decay));
+    }
+  }
+  update(bins, levelState, groundLitter, sfx){
+    this.updateMood(levelState);
+
+    // 1. Pedestrian without waste
+    if(!this.has_waste && !this.picked_up_litter){
+      if(levelState.clean_drive_timer > 0 && groundLitter.length > 0 && bins.length > 0){
+        let target = groundLitter[0], bestD = Infinity;
+        for(const l of groundLitter){
+          const d = Math.hypot(l.x - this.x, l.y - this.y);
+          if(d < bestD){ bestD = d; target = l; }
+        }
+        const dx = target.x - this.x, dy = target.y - this.y, dist = Math.hypot(dx, dy);
+        if(dist < 10){
+          const idx = groundLitter.indexOf(target);
+          if(idx !== -1){ groundLitter.splice(idx, 1); this.picked_up_litter = target.type; }
+        } else {
+          this.vx = (dx / dist) * this.speed; this.vy = (dy / dist) * this.speed;
+          this.x += this.vx; this.y += this.vy;
+        }
+      } else {
+        this.vy = this.speed; this.y += this.vy;
+      }
+      return;
+    }
+
+    // 2. Citizen carrying picked-up litter to bin
+    if(this.picked_up_litter && bins.length > 0){
+      const validBins = bins.filter(b => b.total_weight < b.max_capacity);
+      if(validBins.length > 0){
+        let targetBin = validBins[0], bestD = Infinity;
+        for(const b of validBins){
+          const d = Math.hypot(b.world_x - this.x, b.world_y - this.y);
+          if(d < bestD){ bestD = d; targetBin = b; }
+        }
+        const dx = targetBin.world_x - this.x, dy = targetBin.world_y - this.y, dist = Math.hypot(dx, dy);
+        if(dist < 8){
+          targetBin.current_stock[this.picked_up_litter] += 5.0;
+          this.picked_up_litter = null;
+          if(sfx) sfx.deposit();
+        } else {
+          this.vx = (dx / dist) * this.speed; this.vy = (dy / dist) * this.speed;
+          this.x += this.vx; this.y += this.vy;
+        }
+      }
+      return;
+    }
+
+    // 3. Citizen spawned with waste
+    if(this.has_waste){
+      if(this.mood >= 70.0 && bins.length > 0){
+        const validBins = bins.filter(b => b.total_weight < b.max_capacity);
+        if(validBins.length > 0){
+          let targetBin = validBins[0], bestD = Infinity;
+          for(const b of validBins){
+            const d = Math.hypot(b.world_x - this.x, b.world_y - this.y);
+            if(d < bestD){ bestD = d; targetBin = b; }
+          }
+          const dx = targetBin.world_x - this.x, dy = targetBin.world_y - this.y, dist = Math.hypot(dx, dy);
+          if(dist < 8){
+            targetBin.current_stock[this.waste_type] += 5.0;
+            this.has_waste = false;
+            if(sfx) sfx.deposit();
+          } else {
+            this.vx = (dx / dist) * this.speed; this.vy = (dy / dist) * this.speed;
+            this.x += this.vx; this.y += this.vy;
+          }
+        }
+      } else {
+        this.vy = this.speed; this.y += this.vy;
+        if(Math.random() < 0.04){
+          groundLitter.push({
+            x: this.x, y: this.y,
+            vx: (Math.random() * 8 - 4), vy: (Math.random() * 5 - 2),
+            weight: 5.0, type: this.waste_type, landed: false
+          });
+          this.has_waste = false;
+          if(sfx) sfx.drop();
+        }
+      }
+    }
+  }
+  draw(ctx){
+    const gridScale = 2, spriteW = 10 * gridScale, spriteH = 14 * gridScale;
+    const bodyCol = this.archetype === 'Student' ? [50, 120, 220] : [200, 140, 50];
+    const shadeCol = `rgb(${Math.floor(bodyCol[0]/2)},${Math.floor(bodyCol[1]/2)},${Math.floor(bodyCol[2]/2)})`;
+    const shirtCol = 'rgb(180,190,210)';
+    const ticks = performance.now();
+    const breathOffset = Math.sin(ticks * 0.01) > 0.3 ? 1 : 0;
+    const hOff = breathOffset * gridScale;
+    const ox = Math.floor(this.x) - spriteW / 2, oy = Math.floor(this.y) - spriteH / 2;
+
+    ctx.save();
+    ctx.translate(ox, oy);
+
+    ctx.fillStyle = shadeCol;
+    ctx.fillRect(2 * gridScale, 0 + hOff, 6 * gridScale, 6 * gridScale);
+    ctx.fillStyle = 'rgb(220,190,160)';
+    ctx.fillRect(3 * gridScale, 1 * gridScale + hOff, 4 * gridScale, 4 * gridScale);
+
+    const eyeCol = this.mood < 40 ? COLORS.DANGER : '#0A0A0A';
+    ctx.fillStyle = eyeCol;
+    ctx.fillRect(4 * gridScale, 2 * gridScale + hOff, 1 * gridScale, 1 * gridScale);
+    ctx.fillRect(6 * gridScale, 2 * gridScale + hOff, 1 * gridScale, 1 * gridScale);
+
+    ctx.fillStyle = shadeCol;
+    ctx.fillRect(1 * gridScale, 6 * gridScale, 8 * gridScale, 6 * gridScale);
+    ctx.fillStyle = shirtCol;
+    ctx.fillRect(2 * gridScale, 7 * gridScale, 6 * gridScale, 5 * gridScale);
+    ctx.fillStyle = shadeCol;
+    ctx.fillRect(2 * gridScale, 12 * gridScale, 2 * gridScale, 2 * gridScale);
+    ctx.fillRect(6 * gridScale, 12 * gridScale, 2 * gridScale, 2 * gridScale);
+    ctx.restore();
+
+    // Emoji mood bubble
+    let emojiChar, col;
+    if(this.picked_up_litter){ emojiChar = '🧹'; col = COLORS.ACCENT_BLUE; }
+    else if(!this.has_waste){ emojiChar = '😐'; col = '#B4B4B4'; }
+    else if(this.mood >= 70){ emojiChar = '😊'; col = COLORS.ACCENT_GREEN; }
+    else { emojiChar = '😡'; col = COLORS.DANGER; }
+
+    const bubbleX = Math.floor(this.x) - 10, bubbleY = Math.floor(this.y) - spriteH / 2 - 20;
+    ctx.fillStyle = '#FFFFFF';
+    roundRectPath(ctx, bubbleX, bubbleY, 20, 20, 10); ctx.fill();
+    ctx.strokeStyle = '#282828'; ctx.lineWidth = 1;
+    roundRectPath(ctx, bubbleX, bubbleY, 20, 20, 10); ctx.stroke();
+    ctx.font = '16px "Noto Color Emoji","Segoe UI Emoji",sans-serif';
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillText(emojiChar, bubbleX - 2, bubbleY);
+  }
+}
+
+/* =========================================================
+   SCHOOL AREA LEVEL  (ported from level.py SchoolAreaLevel)
+   ========================================================= */
+class SchoolAreaLevel{
+  constructor(){
+    this.state = new LevelState();
+    this.grid = Array.from({ length: GRID_ROWS }, () => Array(GRID_COLS).fill(0));
+    this._buildDhakaCollegeLayout();
+
+    this.bins = [new SmartBin(8, 7, true)];
+    this.ground_litter = [];
+    this.npcs = [];
+
+    const topLaneY = 8 * TILE_SIZE + 4;
+    const bottomLaneY = 9 * TILE_SIZE + 4;
+    this.rickshaw = new Rickshaw(SCREEN_WIDTH, topLaneY, bottomLaneY);
+    this.cng = new CNGVehicle(SCREEN_WIDTH, topLaneY, bottomLaneY);
+  }
+  _buildDhakaCollegeLayout(){
+    // Tile IDs: 0 grass, 1 sidewalk, 2 asphalt, 3 brick, 4 plaster, 5 tong, 6 dirt, 7 canal
+    for(let r = 1; r < 4; r++) for(let c = 2; c < 18; c++) this.grid[r][c] = 4;
+    for(let c = 1; c < 19; c++) this.grid[0][c] = 3;
+    for(let r = 4; r < 7; r++) for(let c = 2; c < 14; c++) this.grid[r][c] = 6;
+    for(let c = 1; c < 19; c++){ if(c !== 8 && c !== 9) this.grid[7][c] = 3; }
+    for(let c = 0; c < GRID_COLS; c++){
+      this.grid[7][c] = this.grid[7][c] === 0 ? 1 : this.grid[7][c];
+      this.grid[8][c] = 2; this.grid[9][c] = 2; this.grid[10][c] = 1;
+    }
+    this.grid[6][1] = 5; this.grid[6][16] = 5; this.grid[11][4] = 5; this.grid[11][18] = 5;
+    for(let r = 11; r < GRID_ROWS; r++) for(let c = 20; c < GRID_COLS; c++) this.grid[r][c] = 7;
+  }
+  update_physics_and_litter(){
+    this.rickshaw.update(); this.cng.update();
+    for(const lit of this.ground_litter){
+      if(!lit.landed){
+        lit.x += lit.vx; lit.y += lit.vy;
+        lit.vx *= 0.85; lit.vy *= 0.85;
+        if(Math.abs(lit.vx) < 0.1 && Math.abs(lit.vy) < 0.1) lit.landed = true;
+      }
+    }
+    const litterWeight = this.ground_litter.reduce((a, l) => a + l.weight, 0);
+    const overflowPenalty = this.bins.filter(b => b.total_weight >= b.max_capacity).length * 30;
+    this.state.epi = Math.min(100.0, (litterWeight * 1.2) + overflowPenalty);
+  }
+  draw_map(ctx, textures){
+    for(let r = 0; r < GRID_ROWS; r++){
+      for(let c = 0; c < GRID_COLS; c++){
+        const t = this.grid[r][c], px = c * TILE_SIZE, py = r * TILE_SIZE;
+        if(t === 0) ctx.drawImage(textures.grass, px, py);
+        else if(t === 1) ctx.drawImage(textures.sidewalk, px, py);
+        else if(t === 2) ctx.drawImage(textures.asphalt, px, py);
+        else if(t === 3) ctx.drawImage(textures.brick, px, py);
+        else if(t === 4) ctx.drawImage(textures.plaster, px, py);
+        else if(t === 5) ctx.drawImage(textures.tong, px, py);
+        else if(t === 6){ ctx.fillStyle = 'rgb(190,150,100)'; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE); }
+        else if(t === 7){
+          ctx.fillStyle = 'rgb(45,60,50)'; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+          ctx.strokeStyle = 'rgb(65,85,70)'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(px, py + 16); ctx.lineTo(px + TILE_SIZE, py + 16); ctx.stroke();
+        }
+      }
+    }
+    ctx.strokeStyle = 'rgb(230,230,180)'; ctx.lineWidth = 2;
+    for(let c = 0; c < GRID_COLS; c += 2){
+      ctx.beginPath(); ctx.moveTo(c * TILE_SIZE, 9 * TILE_SIZE); ctx.lineTo((c + 1) * TILE_SIZE, 9 * TILE_SIZE); ctx.stroke();
+    }
+
+    const signRect = { x: 7 * TILE_SIZE - 10, y: 2, w: 120, h: 22 };
+    ctx.fillStyle = 'rgb(140,30,30)'; roundRectPath(ctx, signRect.x, signRect.y, signRect.w, signRect.h, 3); ctx.fill();
+    ctx.strokeStyle = COLORS.GOLD; ctx.lineWidth = 2; roundRectPath(ctx, signRect.x, signRect.y, signRect.w, signRect.h, 3); ctx.stroke();
+    ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 12px Consolas, monospace';
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillText('DHAKA COLLEGE', signRect.x + 12, signRect.y + 3);
+
+    this._drawKrishnachuraTree(ctx, 2 * TILE_SIZE, 4 * TILE_SIZE);
+    this._drawKrishnachuraTree(ctx, 12 * TILE_SIZE, 4 * TILE_SIZE);
+
+    this.rickshaw.draw(ctx);
+    this.cng.draw(ctx);
+
+    for(const lit of this.ground_litter) this._drawRetroWaste(ctx, lit);
+  }
+  _drawRetroWaste(ctx, lit){
+    const x = Math.floor(lit.x), y = Math.floor(lit.y);
+    const wType = lit.type || 'Plastic';
+    if(wType === 'Plastic'){
+      ctx.fillStyle = 'rgb(100,200,255)'; roundRectPath(ctx, x - 2, y - 4, 4, 8, 1); ctx.fill();
+      ctx.fillStyle = 'rgb(50,120,220)'; ctx.fillRect(x - 1, y - 6, 2, 2);
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x - 1, y - 3); ctx.lineTo(x - 1, y + 2); ctx.stroke();
+    } else if(wType === 'Paper'){
+      ctx.fillStyle = 'rgb(235,235,225)';
+      ctx.beginPath();
+      ctx.moveTo(x, y - 4); ctx.lineTo(x + 4, y - 1); ctx.lineTo(x + 3, y + 4);
+      ctx.lineTo(x - 3, y + 3); ctx.lineTo(x - 4, y - 2); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgb(170,170,170)';
+      ctx.beginPath(); ctx.moveTo(x - 2, y - 1); ctx.lineTo(x + 2, y + 2); ctx.stroke();
+      ctx.strokeStyle = 'rgb(190,190,190)';
+      ctx.beginPath(); ctx.moveTo(x + 1, y - 3); ctx.lineTo(x - 1, y + 2); ctx.stroke();
+    } else if(wType === 'Organic'){
+      ctx.fillStyle = 'rgb(220,180,30)';
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y + 2); ctx.lineTo(x, y - 3); ctx.lineTo(x + 4, y + 3); ctx.lineTo(x + 1, y + 1);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgb(110,80,20)';
+      ctx.beginPath(); ctx.moveTo(x, y - 3); ctx.lineTo(x, y); ctx.stroke();
+      ctx.fillStyle = 'rgb(140,100,30)';
+      ctx.beginPath(); ctx.arc(x + 2, y + 2, 1, 0, Math.PI * 2); ctx.fill();
+    } else if(wType === 'E-Waste'){
+      ctx.fillStyle = 'rgb(30,120,50)'; ctx.fillRect(x - 4, y - 3, 8, 6);
+      ctx.fillStyle = 'rgb(220,200,60)'; ctx.fillRect(x - 2, y - 1, 4, 2);
+      ctx.strokeStyle = 'rgb(200,200,200)';
+      ctx.beginPath(); ctx.moveTo(x - 4, y - 2); ctx.lineTo(x - 4, y + 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x + 3, y - 2); ctx.lineTo(x + 3, y + 2); ctx.stroke();
+    } else {
+      ctx.fillStyle = 'rgb(200,50,50)'; ctx.fillRect(x - 2, y - 3, 4, 6);
+    }
+  }
+  _drawKrishnachuraTree(ctx, x, y){
+    ctx.fillStyle = 'rgb(90,50,20)'; ctx.fillRect(x + 12, y + 16, 8, 16);
+    ctx.fillStyle = 'rgb(30,110,40)'; ctx.beginPath(); ctx.arc(x + 16, y + 10, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgb(210,40,40)'; ctx.beginPath(); ctx.arc(x + 12, y + 6, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgb(230,70,40)'; ctx.beginPath(); ctx.arc(x + 20, y + 12, 8, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+/* =========================================================
+   FLOATING FEEDBACK TEXT  (added UI polish)
+   ========================================================= */
+class FloatingText{
+  constructor(x, y, text, color){ this.x = x; this.y = y; this.text = text; this.color = color; this.life = 1.0; }
+  update(){ this.y -= 0.5; this.life -= 0.022; }
+  draw(ctx){
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.fillStyle = this.color; ctx.font = 'bold 13px Consolas, monospace';
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText(this.text, this.x, this.y);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* =========================================================
+   HUD  (ported from ui/hud.py + extra gauge / bin counter)
+   ========================================================= */
+class HUD{
+  constructor(){
+    this.hud_rect = { x: 0, y: GRID_ROWS * TILE_SIZE, w: SCREEN_WIDTH, h: 200 };
+    this.btn_reward  = { x: 20,  y: SCREEN_HEIGHT - 55, w: 180, h: 35 };
+    this.btn_buy_bin = { x: 210, y: SCREEN_HEIGHT - 55, w: 180, h: 35 };
+    this.btn_ad      = { x: 400, y: SCREEN_HEIGHT - 55, w: 180, h: 35 };
+    this.btn_empty   = { x: SCREEN_WIDTH - 296, y: SCREEN_HEIGHT - 55, w: 130, h: 35 };
+    this.btn_b2b     = { x: SCREEN_WIDTH - 150, y: SCREEN_HEIGHT - 55, w: 130, h: 35 };
+  }
+  draw(ctx, levelState, placingBin, binsCount){
+    ctx.fillStyle = COLORS.UI_PANEL; ctx.fillRect(this.hud_rect.x, this.hud_rect.y, this.hud_rect.w, this.hud_rect.h);
+    ctx.strokeStyle = COLORS.UI_BORDER; ctx.lineWidth = 2;
+    ctx.strokeRect(this.hud_rect.x + 1, this.hud_rect.y + 1, this.hud_rect.w - 2, this.hud_rect.h - 2);
+
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+
+    ctx.font = 'bold 18px Consolas, monospace';
+    ctx.fillStyle = COLORS.GOLD;
+    ctx.fillText(`Funds: Tk ${levelState.money.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`, 20, SCREEN_HEIGHT - 180);
+
+    const mins = Math.floor(levelState.time_left / 60), secs = levelState.time_left % 60;
+    const timeStr = `Time Left: ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+    ctx.fillStyle = levelState.time_left <= 30 ? COLORS.DANGER : COLORS.TEXT_LIGHT;
+    ctx.fillText(timeStr, 220, SCREEN_HEIGHT - 180);
+
+    ctx.font = 'bold 14px Consolas, monospace';
+    ctx.fillStyle = COLORS.GOLD;
+    ctx.fillText('GOAL: Keep EPI < 30% before time runs out!', 20, SCREEN_HEIGHT - 150);
+
+    const epiCol = levelState.epi < 30.0 ? COLORS.ACCENT_GREEN : COLORS.DANGER;
+    ctx.fillStyle = epiCol;
+    ctx.fillText(`Current EPI: ${levelState.epi.toFixed(1)}% (Target: < 30%)`, 20, SCREEN_HEIGHT - 125);
+
+    // EPI gauge bar (added UI)
+    const gx = 300, gy = SCREEN_HEIGHT - 121, gw = 110, gh = 10;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(gx, gy, gw, gh);
+    const ratio = Math.min(1, levelState.epi / 100);
+    ctx.fillStyle = epiCol; ctx.fillRect(gx, gy, gw * ratio, gh);
+    ctx.strokeStyle = COLORS.UI_BORDER; ctx.strokeRect(gx + 0.5, gy + 0.5, gw - 1, gh - 1);
+    ctx.strokeStyle = COLORS.GOLD;
+    ctx.beginPath(); ctx.moveTo(gx + gw * 0.3, gy - 2); ctx.lineTo(gx + gw * 0.3, gy + gh + 2); ctx.stroke();
+
+    if(placingBin){
+      ctx.font = 'bold 14px Consolas, monospace'; ctx.fillStyle = COLORS.GOLD;
+      ctx.fillText('MODE: Click on any sidewalk tile to place Bin!', 20, SCREEN_HEIGHT - 95);
+    } else if(levelState.clean_drive_timer > 0){
+      ctx.fillStyle = COLORS.ACCENT_GREEN; ctx.font = 'bold 14px Consolas, monospace';
+      ctx.fillText(`Clean Drive Active! (${levelState.clean_drive_timer}s remaining)`, 20, SCREEN_HEIGHT - 95);
+    } else if(levelState.ad_active){
+      ctx.fillStyle = COLORS.ACCENT_BLUE; ctx.font = 'bold 14px Consolas, monospace';
+      ctx.fillText(`Ad Campaign Live! (${levelState.ad_timer}s remaining)`, 20, SCREEN_HEIGHT - 95);
+    }
+
+    this._btn(ctx, this.btn_reward, levelState.money >= 1000 ? COLORS.ACCENT_GREEN : COLORS.UI_BORDER,
+      'Give Reward (Tk 1k)', levelState.money >= 1000 ? COLORS.UI_BG : COLORS.TEXT_LIGHT);
+    this._btn(ctx, this.btn_buy_bin, (levelState.money >= 1500 && !placingBin && binsCount < MAX_BINS_LEVEL_1) ? COLORS.GOLD : COLORS.UI_BORDER,
+      'Buy Bin (Tk 1.5k)', levelState.money >= 1500 ? COLORS.UI_BG : COLORS.TEXT_LIGHT);
+    this._btn(ctx, this.btn_ad, (levelState.money >= AD_CAMPAIGN_COST && !levelState.ad_active) ? COLORS.ACCENT_BLUE : COLORS.UI_BORDER,
+      `Launch Ad (Tk ${Math.floor(AD_CAMPAIGN_COST)})`, COLORS.TEXT_LIGHT);
+
+    // Bin count indicator (added UI)
+    ctx.font = '11px Consolas, monospace'; ctx.fillStyle = '#9aa5b3';
+    ctx.fillText(`Bins placed: ${binsCount}/${MAX_BINS_LEVEL_1}  (click a bin to upgrade)`, 20, SCREEN_HEIGHT - 20);
+
+    ctx.font = 'bold 14px Consolas, monospace'; ctx.fillStyle = COLORS.GOLD;
+    ctx.fillText('Warehouse Stock:', SCREEN_WIDTH - 296, SCREEN_HEIGHT - 180);
+    let yOff = SCREEN_HEIGHT - 155;
+    ctx.font = '12px Consolas, monospace';
+    for(const [mat, val] of Object.entries(levelState.warehouse)){
+      ctx.fillStyle = COLORS.TEXT_LIGHT;
+      ctx.fillText(`${mat}: ${val.toFixed(1)} kg`, SCREEN_WIDTH - 296, yOff);
+      yOff += 16;
+    }
+
+    this._btn(ctx, this.btn_empty, COLORS.BIN_GREEN, 'Empty Bins', COLORS.UI_BG);
+    this._btn(ctx, this.btn_b2b, COLORS.ACCENT_BLUE, 'B2B Sales', COLORS.UI_BG);
+  }
+  _btn(ctx, rect, bg, label, textColor){
+    ctx.fillStyle = bg; roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, 4); ctx.fill();
+    ctx.fillStyle = textColor; ctx.font = 'bold 13px Consolas, monospace';
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText(label, rect.x + 10, rect.y + rect.h / 2 + 1);
+    ctx.textBaseline = 'top';
+  }
+  drawEndGameModal(ctx, levelState){
+    if(!(levelState.game_over || levelState.game_won)) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    const dw = 420, dh = 220, dx = (SCREEN_WIDTH - dw) / 2, dy = (SCREEN_HEIGHT - dh) / 2;
+    ctx.fillStyle = COLORS.UI_PANEL; roundRectPath(ctx, dx, dy, dw, dh, 6); ctx.fill();
+    const borderCol = levelState.game_won ? COLORS.ACCENT_GREEN : COLORS.DANGER;
+    ctx.strokeStyle = borderCol; ctx.lineWidth = 3; roundRectPath(ctx, dx, dy, dw, dh, 6); ctx.stroke();
+
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    if(levelState.game_won){
+      ctx.fillStyle = COLORS.ACCENT_GREEN; ctx.font = 'bold 18px Consolas, monospace';
+      ctx.fillText('LEVEL PASSED!', dx + 130, dy + 30);
+      ctx.fillStyle = COLORS.TEXT_LIGHT; ctx.font = 'bold 14px Consolas, monospace';
+      ctx.fillText(`Final EPI: ${levelState.epi.toFixed(1)}% (Target < 30%)`, dx + 40, dy + 85);
+      ctx.fillStyle = COLORS.GOLD;
+      ctx.fillText('Great job keeping the campus clean!', dx + 40, dy + 120);
+    } else {
+      ctx.fillStyle = COLORS.DANGER; ctx.font = 'bold 18px Consolas, monospace';
+      ctx.fillText('LEVEL FAILED!', dx + 130, dy + 30);
+      ctx.fillStyle = COLORS.TEXT_LIGHT; ctx.font = 'bold 14px Consolas, monospace';
+      ctx.fillText(`Final EPI: ${levelState.epi.toFixed(1)}% (Target was < 30%)`, dx + 40, dy + 85);
+      ctx.fillText('Too much waste littered! Try again.', dx + 40, dy + 120);
+    }
+    ctx.font = '12px Consolas, monospace'; ctx.fillStyle = '#9aa5b3';
+    ctx.fillText('Click anywhere to restart', dx + 140, dy + 180);
+  }
+}
+
+/* =========================================================
+   NEGOTIATION POPUP  (ported from ui/negotiation_popup.py)
+   ========================================================= */
+class NegotiationPopup{
+  constructor(warehouseStock){
+    this.active = true;
+    this.warehouse = warehouseStock;
+    this.window_rect = { x: (SCREEN_WIDTH - 450) / 2, y: (SCREEN_HEIGHT - 240) / 2, w: 450, h: 240 };
+    this.btn_accept = { x: this.window_rect.x + 40,  y: this.window_rect.y + 160, w: 150, h: 45 };
+    this.btn_deny   = { x: this.window_rect.x + 210, y: this.window_rect.y + 160, w: 100, h: 45 };
+    this.btn_close  = { x: this.window_rect.x + 325, y: this.window_rect.y + 160, w: 85,  h: 45 };
+    this.generateNewOffer();
+  }
+  generateNewOffer(){
+    const available = Object.entries(this.warehouse).filter(([,v]) => v > 0).map(([k]) => k);
+    if(available.length === 0){ this.active = false; return; }
+    this.waste_type = available[randInt(0, available.length - 1)];
+    const maxAmount = this.warehouse[this.waste_type];
+    this.amount = Math.min(maxAmount, randInt(10, 50));
+    const rate = 15.0 + Math.random() * (35.0 - 15.0);
+    this.offered_price = Math.floor(this.amount * rate);
+  }
+  handleClick(mx, my, levelState, sfx){
+    if(!this.active) return;
+    if(pointInRect(mx, my, this.btn_accept)){
+      if(levelState.warehouse[this.waste_type] >= this.amount){
+        levelState.money += this.offered_price;
+        levelState.warehouse[this.waste_type] -= this.amount;
+        if(sfx) sfx.accept();
+        addFloatingText(this.window_rect.x + this.window_rect.w/2, this.window_rect.y + 60, `+Tk ${this.offered_price}`, COLORS.ACCENT_GREEN);
+      }
+      this.active = false;
+    } else if(pointInRect(mx, my, this.btn_deny)){
+      if(sfx) sfx.deny();
+      this.generateNewOffer();
+    } else if(pointInRect(mx, my, this.btn_close)){
+      this.active = false;
+      if(sfx) sfx.click();
+    }
+  }
+  draw(ctx){
+    if(!this.active) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.63)'; ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillStyle = COLORS.UI_PANEL; roundRectPath(ctx, this.window_rect.x, this.window_rect.y, this.window_rect.w, this.window_rect.h, 6); ctx.fill();
+    ctx.strokeStyle = COLORS.GOLD; ctx.lineWidth = 2;
+    roundRectPath(ctx, this.window_rect.x, this.window_rect.y, this.window_rect.w, this.window_rect.h, 6); ctx.stroke();
+
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = COLORS.GOLD; ctx.font = 'bold 18px Consolas, monospace';
+    ctx.fillText('Corporate Buyer Offer', this.window_rect.x + 20, this.window_rect.y + 20);
+
+    ctx.font = 'bold 14px Consolas, monospace';
+    ctx.fillStyle = COLORS.TEXT_LIGHT;
+    ctx.fillText(`Buyer wants: ${this.amount.toFixed(0)} kg of ${this.waste_type}`, this.window_rect.x + 20, this.window_rect.y + 70);
+    ctx.fillStyle = COLORS.ACCENT_GREEN;
+    ctx.fillText(`Offered Price: \u09F3${this.offered_price}`, this.window_rect.x + 20, this.window_rect.y + 105);
+
+    this._btn(ctx, this.btn_accept, COLORS.ACCENT_GREEN, 'Accept Deal', COLORS.UI_BG);
+    this._btn(ctx, this.btn_deny, COLORS.DANGER, 'Deny', COLORS.TEXT_LIGHT);
+    this._btn(ctx, this.btn_close, COLORS.UI_BORDER, 'Close', COLORS.TEXT_LIGHT);
+  }
+  _btn(ctx, rect, bg, label, color){
+    ctx.fillStyle = bg; roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, 4); ctx.fill();
+    ctx.fillStyle = color; ctx.font = 'bold 14px Consolas, monospace';
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText(label, rect.x + rect.w / 2, rect.y + rect.h / 2 + 1);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  }
+}
+
+/* =========================================================
+   BIN UPGRADE POPUP  (new — wires up the existing SmartBin.upgrade())
+   ========================================================= */
+class BinUpgradePopup{
+  constructor(bin){
+    this.bin = bin;
+    this.active = true;
+    this.window_rect = { x: (SCREEN_WIDTH - 320) / 2, y: (SCREEN_HEIGHT - 170) / 2, w: 320, h: 170 };
+    this.btn_upgrade = { x: this.window_rect.x + 30,  y: this.window_rect.y + 108, w: 140, h: 42 };
+    this.btn_close   = { x: this.window_rect.x + 190, y: this.window_rect.y + 108, w: 100, h: 42 };
+  }
+  handleClick(mx, my, levelState, sfx){
+    if(!this.active) return;
+    if(pointInRect(mx, my, this.btn_upgrade)){
+      const cost = this.bin.level * 2500;
+      const ok = this.bin.upgrade(levelState);
+      if(ok){
+        if(sfx) sfx.coin();
+        addFloatingText(this.bin.world_x + 16, this.bin.world_y, `-Tk ${cost}`, COLORS.DANGER);
+      } else {
+        if(sfx) sfx.deny();
+      }
+      this.active = false;
+    } else if(pointInRect(mx, my, this.btn_close)){
+      this.active = false;
+      if(sfx) sfx.click();
+    }
+  }
+  draw(ctx, levelState){
+    if(!this.active) return;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillStyle = COLORS.UI_PANEL; roundRectPath(ctx, this.window_rect.x, this.window_rect.y, this.window_rect.w, this.window_rect.h, 6); ctx.fill();
+    ctx.strokeStyle = COLORS.ACCENT_BLUE; ctx.lineWidth = 2;
+    roundRectPath(ctx, this.window_rect.x, this.window_rect.y, this.window_rect.w, this.window_rect.h, 6); ctx.stroke();
+
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.fillStyle = COLORS.GOLD; ctx.font = 'bold 16px Consolas, monospace';
+    ctx.fillText('Smart Bin Upgrade', this.window_rect.x + 20, this.window_rect.y + 16);
+
+    ctx.font = '13px Consolas, monospace'; ctx.fillStyle = COLORS.TEXT_LIGHT;
+    ctx.fillText(`Current Level: ${this.bin.level}  (Capacity: ${this.bin.max_capacity} kg)`, this.window_rect.x + 20, this.window_rect.y + 48);
+
+    const cost = this.bin.level * 2500;
+    if(this.bin.level >= 3){
+      ctx.fillStyle = COLORS.ACCENT_GREEN;
+      ctx.fillText('This bin is already at max level!', this.window_rect.x + 20, this.window_rect.y + 72);
+    } else {
+      ctx.fillText(`Upgrade Cost: Tk ${cost}`, this.window_rect.x + 20, this.window_rect.y + 72);
+    }
+
+    const canUp = this.bin.canUpgrade(levelState.money);
+    this._btn(ctx, this.btn_upgrade, canUp ? COLORS.ACCENT_BLUE : COLORS.UI_BORDER, 'Upgrade', canUp ? COLORS.UI_BG : COLORS.TEXT_LIGHT);
+    this._btn(ctx, this.btn_close, COLORS.UI_BORDER, 'Close', COLORS.TEXT_LIGHT);
+  }
+  _btn(ctx, rect, bg, label, color){
+    ctx.fillStyle = bg; roundRectPath(ctx, rect.x, rect.y, rect.w, rect.h, 4); ctx.fill();
+    ctx.fillStyle = color; ctx.font = 'bold 13px Consolas, monospace';
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+    ctx.fillText(label, rect.x + rect.w / 2, rect.y + rect.h / 2 + 1);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  }
+}
+
+/* =========================================================
+   GAME CONTROLLER
+   ========================================================= */
+let canvas, ctx, textures;
+let level, hud, activePopup;
+let placingBinMode = false;
+let paused = false;
+let gameVisible = false;
+let secTimer = 0;
+let floatingTexts = [];
+let lastMouse = { x: -1, y: -1 };
+let pausedBeforeModal = false;
+
+function addFloatingText(x, y, text, color){ floatingTexts.push(new FloatingText(x, y, text, color)); }
+
+function initGame(){
+  level = new SchoolAreaLevel();
+  hud = new HUD();
+  activePopup = null;
+  placingBinMode = false;
+  paused = false;
+  secTimer = 0;
+  floatingTexts = [];
+}
+
+function getCanvasPos(evt){
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const clientX = (evt.touches && evt.touches[0]) ? evt.touches[0].clientX : evt.clientX;
+  const clientY = (evt.touches && evt.touches[0]) ? evt.touches[0].clientY : evt.clientY;
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+
+function handleCanvasClick(evt){
+  if(!gameVisible || paused) return;
+  const { x: mx, y: my } = getCanvasPos(evt);
+
+  if(level.state.game_over || level.state.game_won){
+    initGame();
+    sound.click();
+    return;
+  }
+
+  if(activePopup && activePopup.active){
+    activePopup.handleClick(mx, my, level.state, sound);
+    return;
+  }
+
+  // Map bin purchase (placing mode)
+  if(placingBinMode && my < GRID_ROWS * TILE_SIZE){
+    const gx = Math.floor(mx / TILE_SIZE), gy = Math.floor(my / TILE_SIZE);
+    if(level.grid[gy] && level.grid[gy][gx] === 1){
+      if(level.bins.length < MAX_BINS_LEVEL_1 && level.state.money >= 1500){
+        level.state.money -= 1500;
+        level.bins.push(new SmartBin(gx, gy));
+        placingBinMode = false;
+        sound.place();
+        addFloatingText(gx * TILE_SIZE + 16, gy * TILE_SIZE, '-Tk 1500', COLORS.DANGER);
+        return;
+      }
+    }
+  }
+
+  // Click an existing bin to upgrade (added feature)
+  if(!placingBinMode){
+    for(const b of level.bins){
+      const r = { x: b.world_x, y: b.world_y, w: TILE_SIZE, h: TILE_SIZE };
+      if(pointInRect(mx, my, r) && !b.is_starting_bin){
+        activePopup = new BinUpgradePopup(b);
+        sound.click();
+        return;
+      }
+    }
+  }
+
+  // Give Reward
+  if(pointInRect(mx, my, hud.btn_reward) && level.state.money >= 1000){
+    level.state.money -= 1000;
+    level.state.clean_drive_timer = 20;
+    sound.coin();
+    addFloatingText(hud.btn_reward.x + 90, hud.btn_reward.y, '-Tk 1000', COLORS.DANGER);
+
+  // Buy Bin toggle
+  } else if(pointInRect(mx, my, hud.btn_buy_bin) && level.state.money >= 1500 && level.bins.length < MAX_BINS_LEVEL_1){
+    placingBinMode = !placingBinMode;
+    sound.click();
+
+  // Launch Ad
+  } else if(pointInRect(mx, my, hud.btn_ad) && level.state.money >= AD_CAMPAIGN_COST && !level.state.ad_active){
+    level.state.money -= AD_CAMPAIGN_COST;
+    level.state.ad_active = true;
+    level.state.ad_timer = 15;
+    sound.coin();
+    addFloatingText(hud.btn_ad.x + 90, hud.btn_ad.y, `-Tk ${AD_CAMPAIGN_COST}`, COLORS.DANGER);
+
+  // Empty Bins
+  } else if(pointInRect(mx, my, hud.btn_empty)){
+    let emptiedAny = false;
+    for(const b of level.bins){
+      for(const mat of Object.keys(b.current_stock)){
+        const val = b.current_stock[mat];
+        if(val > 0) emptiedAny = true;
+        level.state.warehouse[mat] += val;
+        b.current_stock[mat] = 0.0;
+      }
+    }
+    if(emptiedAny){ sound.deposit(); } else { sound.click(); }
+
+  // Open B2B Negotiation
+  } else if(pointInRect(mx, my, hud.btn_b2b)){
+    const total = Object.values(level.state.warehouse).reduce((a, b) => a + b, 0);
+    if(total > 0){
+      activePopup = new NegotiationPopup(level.state.warehouse);
+      sound.click();
+    } else {
+      sound.deny();
+    }
+  }
+}
+
+function tick(dtMs){
+  if(!gameVisible || paused) return;
+  secTimer += dtMs;
+
+  if(!(level.state.game_over || level.state.game_won)){
+    if(Math.random() < 0.08 && level.npcs.length < 12){
+      level.npcs.push(new CitizenNPC(randInt(100, SCREEN_WIDTH - 100), 0));
+    }
+  }
+
+  if(!(level.state.game_over || level.state.game_won)){
+    if(secTimer >= 1000){
+      secTimer = 0;
+      level.state.time_left = Math.max(0, level.state.time_left - 1);
+
+      if(level.state.time_left <= 0){
+        if(level.state.epi < 30.0){ level.state.game_won = true; sound.win(); }
+        else { level.state.game_over = true; sound.lose(); }
+      }
+      if(level.state.clean_drive_timer > 0) level.state.clean_drive_timer -= 1;
+      if(level.state.ad_active){
+        level.state.ad_timer -= 1;
+        if(level.state.ad_timer <= 0) level.state.ad_active = false;
+      }
+    }
+
+    level.update_physics_and_litter();
+
+    for(const b of level.bins){
+      const isOver = b.total_weight >= b.max_capacity;
+      if(isOver && !b._wasOverflow){ sound.alert(); }
+      b._wasOverflow = isOver;
+    }
+
+    for(let i = level.npcs.length - 1; i >= 0; i--){
+      const npc = level.npcs[i];
+      npc.update(level.bins, level.state, level.ground_litter, sound);
+      if(npc.y > GRID_ROWS * TILE_SIZE){ level.npcs.splice(i, 1); }
+    }
+
+    level.rickshaw.update();
+    level.cng.update();
+  }
+
+  for(let i = floatingTexts.length - 1; i >= 0; i--){
+    floatingTexts[i].update();
+    if(floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+  }
+}
+
+function render(){
+  if(!gameVisible) return;
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = COLORS.UI_BG; ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+  level.draw_map(ctx, textures);
+
+  if(placingBinMode){
+    const { x: mx, y: my } = lastMouse;
+    const gx = Math.floor(mx / TILE_SIZE), gy = Math.floor(my / TILE_SIZE);
+    if(gy >= 0 && gy < GRID_ROWS && level.grid[gy] && level.grid[gy][gx] === 1){
+      ctx.fillStyle = 'rgba(255,215,0,0.47)';
+      ctx.fillRect(gx * TILE_SIZE, gy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+  }
+
+  for(const b of level.bins) b.draw(ctx, textures['bin_lvl_' + b.level]);
+  for(const npc of level.npcs) npc.draw(ctx);
+
+  ctx.drawImage(textures.rickshaw, Math.floor(level.rickshaw.x), Math.floor(level.rickshaw.y));
+
+  hud.draw(ctx, level.state, placingBinMode, level.bins.length);
+
+  for(const ft of floatingTexts) ft.draw(ctx);
+
+  if(activePopup && activePopup.active){
+    if(activePopup instanceof BinUpgradePopup) activePopup.draw(ctx, level.state);
+    else activePopup.draw(ctx);
+  }
+
+  hud.drawEndGameModal(ctx, level.state);
+
+  if(paused && !(level.state.game_over || level.state.game_won)){
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.fillStyle = COLORS.TEXT_LIGHT; ctx.font = 'bold 24px "Press Start 2P", monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('PAUSED', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 10);
+    ctx.font = '14px Consolas, monospace';
+    ctx.fillText('Tap the play button to resume', SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 30);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  }
+}
+
+const STEP = 1000 / 30;
+let accumulator = 0;
+let lastTime = performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  let dt = now - lastTime; lastTime = now;
+  if(dt > 250) dt = 250;
+  accumulator += dt;
+  while(accumulator >= STEP){
+    tick(STEP);
+    accumulator -= STEP;
+  }
+  render();
+}
+
+/* =========================================================
+   DOM WIRING
+   ========================================================= */
+const el = (id) => document.getElementById(id);
+
+function showScreen(id){
+  ['landing', 'quitScreen', 'gameWrap'].forEach(s => { el(s).hidden = (s !== id); });
+  gameVisible = (id === 'gameWrap');
+}
+
+function updatePauseIcon(){ el('btnPause').textContent = paused ? '▶' : '⏸'; }
+function updateMuteIcon(){ el('btnMute').textContent = sound.muted ? '🔇' : '🔊'; }
+
+function startNewGame(){
+  sound.ensure();
+  if(!sound.muted) sound.startMusic();
+  initGame();
+  showScreen('gameWrap');
+  updatePauseIcon();
+  updateMuteIcon();
+}
+
+function openHelp(fromGame){
+  if(fromGame){ pausedBeforeModal = paused; paused = true; }
+  el('howtoModal').hidden = false;
+}
+function closeHelp(fromGame){
+  el('howtoModal').hidden = true;
+  if(fromGame){ paused = pausedBeforeModal; updatePauseIcon(); }
+}
+
+function openQuitConfirm(fromGame){
+  if(fromGame){ pausedBeforeModal = paused; paused = true; }
+  el('quitConfirm').hidden = false;
+}
+function closeQuitConfirm(fromGame){
+  el('quitConfirm').hidden = true;
+  if(fromGame){ paused = pausedBeforeModal; updatePauseIcon(); }
+}
+
+function attemptQuit(){
+  sound.stopMusic();
+  showScreen('quitScreen');
+  try{ window.close(); }catch(e){ /* not script-opened; expected to fail */ }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  canvas = el('gameCanvas');
+  ctx = canvas.getContext('2d');
+  textures = generateTextures();
+
+  canvas.addEventListener('click', handleCanvasClick);
+  canvas.addEventListener('mousemove', (e) => { lastMouse = getCanvasPos(e); });
+  canvas.addEventListener('touchmove', (e) => { lastMouse = getCanvasPos(e); }, { passive: true });
+  canvas.addEventListener('touchstart', (e) => { lastMouse = getCanvasPos(e); }, { passive: true });
+
+  // Landing
+  el('btnStart').addEventListener('click', startNewGame);
+  el('btnHowTo').addEventListener('click', () => openHelp(false));
+  el('btnQuitLanding').addEventListener('click', () => openQuitConfirm(false));
+
+  // How-to modal
+  el('btnHowToClose').addEventListener('click', () => closeHelp(gameVisible));
+
+  // Quit confirm modal
+  el('btnQuitYes').addEventListener('click', () => { el('quitConfirm').hidden = true; attemptQuit(); });
+  el('btnQuitNo').addEventListener('click', () => closeQuitConfirm(gameVisible));
+
+  // Goodbye screen
+  el('btnBackToMenu').addEventListener('click', () => showScreen('landing'));
+
+  // Topbar (in-game)
+  el('btnHelp').addEventListener('click', () => openHelp(true));
+  el('btnMute').addEventListener('click', () => { updateMuteIcon.call(null); sound.toggleMute(); updateMuteIcon(); sound.click(); });
+  el('btnPause').addEventListener('click', () => { paused = !paused; updatePauseIcon(); sound.click(); });
+  el('btnRestart').addEventListener('click', () => { initGame(); sound.click(); updatePauseIcon(); });
+  el('btnQuitGame').addEventListener('click', () => openQuitConfirm(true));
+
+  // Keyboard shortcuts while in game
+  window.addEventListener('keydown', (e) => {
+    if(!gameVisible) return;
+    if(e.key === 'p' || e.key === 'P'){ paused = !paused; updatePauseIcon(); }
+    if(e.key === 'm' || e.key === 'M'){ sound.toggleMute(); updateMuteIcon(); }
+  });
+
+  requestAnimationFrame(loop);
+});
+
+})();
+</script>
+</body>
+</html>
